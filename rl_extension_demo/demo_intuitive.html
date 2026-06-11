@@ -388,50 +388,6 @@
       <strong>步數並非比較指標——關鍵在於 generalization：RL policy 高度依賴訓練環境，換一張迷宮即失效。</strong>
     </div>
 
-    <!-- 換張迷宮挑戰 -->
-    <div style="margin-top:16px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px">
-      <div style="font-weight:700;font-size:16px;margin-bottom:6px">「換張迷宮」挑戰</div>
-      <p style="font-size:14px;color:var(--muted);margin:0 0 14px;line-height:1.55">
-        RL 用 1,200 次訓練換來的「最短路徑」只對迷宮 1 有效。換到迷宮 2——AlphaDev 的程式不需要任何更改，直接可用；RL 則要從頭重新訓練。
-      </p>
-      <button class="btn primary" id="switchBtn">試試看：換到迷宮 2</button>
-      <div id="switchGrid" class="comp-grid" style="margin-top:16px;display:none">
-        <!-- RL side: animated trial-and-error on maze 2 -->
-        <div class="comp-card" style="border-color:#fca5a5">
-          <div class="comp-head">
-            <div class="comp-title">RL Policy（迷宮 1 訓練的）</div>
-            <span class="mbadge needs">迷宮 2</span>
-          </div>
-          <div class="maze-wrap">
-            <div class="over-badge crashed" id="rl2Badge">❌ 撞牆！</div>
-            <div class="maze" id="rlMaze2"></div>
-          </div>
-          <div class="stat-row">
-            <div class="stat-box">
-              <div class="stat-num" id="rl2Walls" style="color:#ef4444">0</div>
-              <div class="stat-lbl">撞牆次數</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-num" id="rl2Steps">0</div>
-              <div class="stat-lbl">移動步數</div>
-            </div>
-          </div>
-          <div class="logbox" id="rl2Log">按下按鈕後執行…</div>
-        </div>
-        <!-- AlphaDev side: solves maze 2 instantly -->
-        <div class="comp-card adv">
-          <div class="comp-head">
-            <div class="comp-title">AlphaDev 程式（不需修改）</div>
-            <span class="mbadge free">直接可用</span>
-          </div>
-          <div class="maze-wrap">
-            <div class="maze" id="switchMaze"></div>
-          </div>
-          <div class="logbox" id="switchLog">按下按鈕後執行…</div>
-          <div style="font-size:12px;color:var(--muted);text-align:center;padding-top:2px">步數多一點，但通用——任何迷宮都能解</div>
-        </div>
-      </div>
-    </div>
   </div>
 
 
