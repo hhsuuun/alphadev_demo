@@ -127,7 +127,14 @@
     }
     .over-badge.thinking { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; }
     .over-badge.firing   { background: #ecfdf5; border: 1px solid #6ee7b7; color: #065f46; }
+    .over-badge.crashed  { background: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; }
     .over-badge.show     { opacity: 1; }
+
+    @keyframes wallFlash {
+      0%, 100% { background: #202938; outline: none; }
+      40%      { background: #7f1d1d; outline: 3px solid #ef4444; outline-offset: -2px; }
+    }
+    .wall-flash { animation: wallFlash 380ms ease; }
 
     /* stats row */
     .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -388,24 +395,27 @@
       </p>
       <button class="btn primary" id="switchBtn">試試看：換到迷宮 2</button>
       <div id="switchGrid" class="comp-grid" style="margin-top:16px;display:none">
-        <!-- RL side: can't solve maze 2 -->
+        <!-- RL side: animated trial-and-error on maze 2 -->
         <div class="comp-card" style="border-color:#fca5a5">
           <div class="comp-head">
             <div class="comp-title">RL Policy（迷宮 1 訓練的）</div>
-            <span class="mbadge needs">換了地圖</span>
+            <span class="mbadge needs">迷宮 2</span>
           </div>
-          <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:22px 16px;text-align:center;display:grid;gap:6px">
-            <div style="font-size:36px">❌</div>
-            <div style="font-weight:700;color:#991b1b;font-size:15px">原 Policy 無法使用</div>
-            <div style="font-size:13px;color:#b91c1c;line-height:1.5">
-              Q-table 記錄的是迷宮 1 每個座標的「最佳移動方向」<br>
-              迷宮 2 的牆壁布局完全不同，這些值毫無意義
+          <div class="maze-wrap">
+            <div class="over-badge crashed" id="rl2Badge">❌ 撞牆！</div>
+            <div class="maze" id="rlMaze2"></div>
+          </div>
+          <div class="stat-row">
+            <div class="stat-box">
+              <div class="stat-num" id="rl2Walls" style="color:#ef4444">0</div>
+              <div class="stat-lbl">撞牆次數</div>
             </div>
-            <div style="margin-top:8px;padding:8px 12px;background:#fee2e2;border-radius:6px;font-size:13px;font-weight:700;color:#991b1b">
-              需要重新跑 1,200+ 訓練回合才能使用
+            <div class="stat-box">
+              <div class="stat-num" id="rl2Steps">0</div>
+              <div class="stat-lbl">移動步數</div>
             </div>
           </div>
-          <div style="font-size:12px;color:var(--muted);text-align:center;padding-top:2px">這就是「步數少」的代價：高度特化，換張圖就廢了</div>
+          <div class="logbox" id="rl2Log">按下按鈕後執行…</div>
         </div>
         <!-- AlphaDev side: solves maze 2 instantly -->
         <div class="comp-card adv">
@@ -788,37 +798,108 @@ function gen5Run() {
 
 /* ═══════════════════════════════════════════════
    Section 2 bonus: "換張迷宮" challenge
+   — RL side shows actual trial-and-error with wall hits
    ═══════════════════════════════════════════════ */
+
+// Simulated RL maze-1 policy applied to maze 2:
+// uses the "go right first, then down" bias learned from maze 1,
+// resulting in wall collisions and a winding confused path.
+const RL_MAZE2_STEPS = [
+  { pos:[1,1], blocked:false, log:"從起點出發，套用迷宮 1 的 Q-table…" },
+  { pos:[1,1], blocked:true,  wall:[1,2], log:"Q-table 建議：往右走（迷宮 1 最佳方向）→ ❌ 牆壁！迷宮 2 佈局不同" },
+  { pos:[2,1], blocked:false, log:"Q-table 次佳：往下走（迷宮 1 學的）→ 移動，但已偏離終點方向" },
+  { pos:[2,1], blocked:true,  wall:[2,2], log:"Q-table 建議：往右走（迷宮 1 最佳方向）→ ❌ 又撞牆！" },
+  { pos:[3,1], blocked:false, log:"Q-table 次佳：往下走（迷宮 1 學的）→ 繼續往下，離終點更遠了" },
+  { pos:[3,2], blocked:false, log:"Q-table 建議：往右走（迷宮 1 學的）→ 移動" },
+  { pos:[3,3], blocked:false, log:"Q-table 建議：往右走（迷宮 1 學的）→ 移動" },
+  { pos:[3,3], blocked:true,  wall:[3,4], log:"Q-table 建議：往右走（迷宮 1 學的）→ ❌ 撞牆！" },
+  { pos:[2,3], blocked:false, log:"Q-table 次佳：往上走（迷宮 1 學的）→ 走回頭路，浪費步數" },
+  { pos:[2,3], blocked:true,  wall:[2,4], log:"Q-table 建議：往右走（迷宮 1 學的）→ ❌ 第 4 次撞牆！" },
+  { pos:[1,3], blocked:false, log:"Q-table 次佳：往上走（迷宮 1 學的）→ 反而越走越遠離終點" },
+  { pos:[1,4], blocked:false, log:"Q-table 建議：往右走（迷宮 1 學的）→ 移動" },
+  { pos:[1,5], blocked:false, log:"Q-table 建議：往右走（迷宮 1 學的）→ 移動" },
+  { pos:[2,5], blocked:false, log:"✅ 碰巧到達！撞牆 4 次、走 13 步——每一步都在盲目套用迷宮 1 的 Q-value" },
+];
+
+function flashWallTile(mazeEl, maze, [wr, wc]) {
+  const tiles = mazeEl.querySelectorAll('.tile');
+  const tile  = tiles[wr * maze[0].length + wc];
+  if (!tile) return;
+  tile.classList.add('wall-flash');
+  setTimeout(() => tile.classList.remove('wall-flash'), 400);
+}
+
 document.getElementById('switchBtn').addEventListener('click', () => {
   const btn = document.getElementById('switchBtn');
-  btn.textContent = '已執行';
+  btn.textContent = '播放中…';
   btn.disabled = true;
 
   document.getElementById('switchGrid').style.display = 'grid';
 
-  const maze2  = MAZES[1];
-  const res    = runProgram(['LEFT_OPEN'], maze2);
-  const mazeEl = document.getElementById('switchMaze');
-  const logEl  = document.getElementById('switchLog');
+  const maze2      = MAZES[1];
+  const rlMazeEl   = document.getElementById('rlMaze2');
+  const advMazeEl  = document.getElementById('switchMaze');
+  const rl2Log     = document.getElementById('rl2Log');
+  const switchLog  = document.getElementById('switchLog');
 
-  // Init maze display
-  renderMaze(mazeEl, maze2, [res.path[0]], res.path[0], true);
-  logEl.textContent = '執行 LEFT_OPEN 規則…';
+  // Compute AlphaDev path on maze 2
+  const advRes  = runProgram(['LEFT_OPEN'], maze2);
+  const advPath = advRes.path;
+  const advRule = advRes.ruleFired;
 
-  let i = 0;
-  const t = setInterval(() => {
-    if (i >= res.path.length - 1) {
-      clearInterval(t);
-      logEl.innerHTML = `✅ 解決！${res.path.length - 1} 步。<strong>相同程式，零修改。</strong>`;
+  // Init both mazes
+  renderMaze(rlMazeEl,  maze2, [RL_MAZE2_STEPS[0].pos], RL_MAZE2_STEPS[0].pos, false);
+  renderMaze(advMazeEl, maze2, [advPath[0]], advPath[0], true);
+  rl2Log.textContent   = '套用迷宮 1 的 Q-table…';
+  switchLog.textContent = '執行 LEFT_OPEN 規則…';
+
+  let rlIdx   = 0;
+  let advIdx  = 0;
+  let rl2Walls = 0, rl2Moves = 0;
+  const rl2Visited = [RL_MAZE2_STEPS[0].pos];
+
+  const timer = setInterval(() => {
+    const rlDone  = rlIdx  >= RL_MAZE2_STEPS.length - 1;
+    const advDone = advIdx >= advPath.length - 1;
+    if (rlDone && advDone) {
+      clearInterval(timer);
+      btn.textContent = '已完成';
       return;
     }
-    i++;
-    renderMaze(mazeEl, maze2, res.path.slice(0, i + 1), res.path[i], true);
-    const fired = res.ruleFired[i - 1] || '';
-    logEl.textContent = fired !== 'TURN'
-      ? `步驟 ${i}：${fired} 觸發 → 移動`
-      : `步驟 ${i}：無規則觸發 → 右轉`;
-  }, 160);
+
+    // --- RL side ---
+    if (!rlDone) {
+      rlIdx++;
+      const s = RL_MAZE2_STEPS[rlIdx];
+      if (s.blocked) {
+        rl2Walls++;
+        document.getElementById('rl2Badge').classList.add('show');
+        setTimeout(() => document.getElementById('rl2Badge').classList.remove('show'), 420);
+        flashWallTile(rlMazeEl, maze2, s.wall);
+      } else {
+        rl2Moves++;
+        if (!rl2Visited.some(p => same(p, s.pos))) rl2Visited.push(s.pos);
+        renderMaze(rlMazeEl, maze2, rl2Visited, s.pos, false);
+      }
+      document.getElementById('rl2Walls').textContent = rl2Walls;
+      document.getElementById('rl2Steps').textContent = rl2Moves;
+      rl2Log.textContent = s.log;
+    }
+
+    // --- AlphaDev side ---
+    if (!advDone) {
+      advIdx++;
+      renderMaze(advMazeEl, maze2, advPath.slice(0, advIdx+1), advPath[advIdx], true);
+      const fired = advRule[advIdx-1] || '';
+      if (advIdx === advPath.length - 1) {
+        switchLog.innerHTML = `✅ 解決！${advPath.length-1} 步，<strong style="color:var(--program)">撞牆 0 次</strong>，相同程式零修改`;
+      } else {
+        switchLog.textContent = fired !== 'TURN'
+          ? `步驟 ${advIdx}：${fired} 觸發 → 移動`
+          : `步驟 ${advIdx}：無規則 → 右轉`;
+      }
+    }
+  }, 420);
 });
 
 document.getElementById('genRunBtn').addEventListener('click', gen5Run);
