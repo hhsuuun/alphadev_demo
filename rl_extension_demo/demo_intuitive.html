@@ -321,8 +321,9 @@
   <div class="sec sec-sep">
     <h2>2．直接在迷宮裡看：每走一步，誰需要「動腦」？</h2>
     <p class="sec-sub">
-      同一張迷宮，左邊用「RL Policy 模式」（每步呼叫模型），右邊用「AlphaDev 程式模式」（照規則走）。
-      盯著<strong>模型呼叫次數</strong>的差異——這就是部署成本的根本差距。
+      以相同迷宮為測試環境：左側模擬標準 RL Policy 的推論流程，每個 timestep 需執行一次模型推論；
+      右側執行 AlphaDev 所發現的規則程式，部署後完全不依賴模型。
+      觀察<strong>模型呼叫次數</strong>，即可量化兩種範式在 inference 階段的本質差距。
     </p>
 
     <div class="ctrl-row" style="margin-bottom:16px">
@@ -381,10 +382,10 @@
     </div>
 
     <div class="note-box">
-      <strong style="color:var(--ink)">為什麼 AlphaDev 步數比 RL 多？</strong>
-      RL（Q-learning）針對<strong>這一張迷宮訓練了 1,200 次</strong>，學到的幾乎是最短路徑（8 步）；
-      AlphaDev 的 LEFT_OPEN 是一個<strong>通用規則</strong>，從未針對任何迷宮優化，走的是左手定則（17 步）。
-      步數多寡不是重點——<strong>重點是：把 RL 的 policy 換到另一張迷宮，就完全失效了。</strong>
+      <strong style="color:var(--ink)">關於步數差異：</strong>
+      RL policy 經過 1,200 回合的環境特化訓練，收斂至此迷宮的近最優路徑（8 步）；
+      AlphaDev 發現的 LEFT_OPEN 為環境無關的通用規則，未針對任何特定迷宮優化（17 步）。
+      <strong>步數並非比較指標——關鍵在於 generalization：RL policy 高度依賴訓練環境，換一張迷宮即失效。</strong>
     </div>
 
     <!-- 換張迷宮挑戰 -->
@@ -433,246 +434,6 @@
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════
-       Section 3: 泛化 — 5 張迷宮
-       ══════════════════════════════════════ -->
-  <div class="sec sec-sep">
-    <h2>3．同一個程式，解 5 張迷宮（含從未見過的）</h2>
-    <p class="sec-sub">
-      AlphaDev 只在左邊 3 張迷宮上搜尋，卻發現了能直接解右邊 2 張<strong>從未見過</strong>的迷宮的程式。
-      這說明它找到的是<strong>通用邏輯</strong>，不是記憶解法。
-    </p>
-
-    <div class="gen-tags">
-      <span class="gtag train">訓練迷宮（已見過）×3</span>
-      <span class="gtag test">測試迷宮（從未見過）×2</span>
-    </div>
-
-    <div class="gen5" id="gen5"></div>
-
-    <div class="ctrl-row" style="margin-top:14px">
-      <button class="btn primary" id="genRunBtn">▶ 跑泛化測試</button>
-      <button class="btn ghost"   id="genResetBtn">重置</button>
-    </div>
-
-    <div class="note-box" style="margin-top:14px">
-      <strong style="color:var(--ink)">類比真實 AlphaDev：</strong>
-      論文中，AlphaDev 的排序程式是在特定輸入分布上搜尋，但最終驗證在所有可能的輸入組合上都正確排序。
-      它不是「記住了怎麼排某些數字」，而是發現了一個通用的排序演算法。
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════
-       Section 4: 對應到論文
-       ══════════════════════════════════════ -->
-  <div class="sec sec-sep">
-    <h2>4．從迷宮 Demo 對應到論文</h2>
-    <p class="sec-sub">Demo 裡的迷宮規則搜尋，是 AlphaDev 核心機制的微縮版。以下是直接對應關係。</p>
-
-    <!-- Pipeline -->
-    <div style="background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px">
-      <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">AlphaDev 原論文技術流程</div>
-      <div style="display:flex;align-items:stretch;gap:0">
-        <div style="flex:1;background:#f8fafc;border:1px solid var(--line);border-radius:8px 0 0 8px;padding:12px;text-align:center">
-          <div style="font-weight:700;font-size:13px">AssemblyGame</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:3px">排序程式搜尋遊戲</div>
-        </div>
-        <div style="display:flex;align-items:center;padding:0 8px;color:var(--muted);font-weight:800">→</div>
-        <div style="flex:1;background:#f8fafc;border:1px solid var(--line);border-left:none;padding:12px;text-align:center">
-          <div style="font-weight:700;font-size:13px">append instruction</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:3px">action = 新增一條組語</div>
-        </div>
-        <div style="display:flex;align-items:center;padding:0 8px;color:var(--muted);font-weight:800">→</div>
-        <div style="flex:1;background:#f8fafc;border:1px solid var(--line);border-left:none;padding:12px;text-align:center">
-          <div style="font-weight:700;font-size:13px">execute candidate</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:3px">跑測資、量 latency</div>
-        </div>
-        <div style="display:flex;align-items:center;padding:0 8px;color:var(--muted);font-weight:800">→</div>
-        <div style="flex:1;background:#ecfdf5;border:1px solid #6ee7b7;border-radius:0 8px 8px 0;padding:12px;text-align:center">
-          <div style="font-weight:700;font-size:13px;color:#065f46">keep best program</div>
-          <div style="font-size:12px;color:#047857;margin-top:3px">correctness + speed</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Mapping table -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
-      <div style="background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px">
-        <div style="font-weight:700;font-size:14px;margin-bottom:6px">State</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.5">
-          <span style="display:block;color:var(--control);font-weight:600;margin-bottom:2px">迷宮 Demo</span>目前位置
-          <span style="display:block;color:var(--program);font-weight:600;margin:6px 0 2px">AlphaDev</span>目前程式 + execution state
-        </div>
-      </div>
-      <div style="background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px">
-        <div style="font-weight:700;font-size:14px;margin-bottom:6px">Action</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.5">
-          <span style="display:block;color:var(--control);font-weight:600;margin-bottom:2px">迷宮 Demo</span>加入一條規則
-          <span style="display:block;color:var(--program);font-weight:600;margin:6px 0 2px">AlphaDev</span>append 一條 x86 指令
-        </div>
-      </div>
-      <div style="background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px">
-        <div style="font-weight:700;font-size:14px;margin-bottom:6px">Reward</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.5">
-          <span style="display:block;color:var(--control);font-weight:600;margin-bottom:2px">迷宮 Demo</span>解了幾張迷宮 − 程式長度
-          <span style="display:block;color:var(--program);font-weight:600;margin:6px 0 2px">AlphaDev</span>correctness + latency
-        </div>
-      </div>
-      <div style="background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px">
-        <div style="font-weight:700;font-size:14px;margin-bottom:6px">Output</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.5">
-          <span style="display:block;color:var(--control);font-weight:600;margin-bottom:2px">迷宮 Demo</span>可解多張迷宮的規則
-          <span style="display:block;color:var(--program);font-weight:600;margin:6px 0 2px">AlphaDev</span>可部署進 LLVM 的排序程式
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════
-       Section 5: 三個論文核心技術細節
-       ══════════════════════════════════════ -->
-  <div class="sec sec-sep">
-    <h2>5. 三個論文核心技術細節</h2>
-    <p class="sec-sub">對應 PPT Slide 4 / 6 / 8——比 Demo 更深一層，讓報告更完整。</p>
-
-    <!-- ── A: State = Pt + Zt ── -->
-    <div style="background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-        <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--control);color:white;font-size:12px;font-weight:700;flex:0 0 auto">A</span>
-        <strong style="font-size:15px">State St = Pt（程式）+ Zt（執行狀態）</strong>
-      </div>
-      <p style="font-size:13px;color:var(--muted);margin:0 0 14px;line-height:1.55">
-        迷宮 Demo 的 state 只有「目前位置」；真實 AlphaDev 的 state 有兩個部分：目前已寫的指令序列 Pt，加上把這段程式跑在所有測試輸入後的 register/memory 狀態 Zt。兩部分各自送給不同的 encoder 處理。
-      </p>
-      <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch">
-        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px 0 0 8px;padding:14px">
-          <div style="font-size:11px;font-weight:600;color:#1d4ed8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Pt — 目前程式指令</div>
-          <div style="display:grid;gap:5px;margin-bottom:12px">
-            <code style="display:block;padding:3px 8px;border-radius:4px;font-size:12px;background:#dbeafe;color:#1e40af;border:1px solid #93c5fd">MOV &lt;%eax, (%rsi)&gt;</code>
-            <code style="display:block;padding:3px 8px;border-radius:4px;font-size:12px;background:#dbeafe;color:#1e40af;border:1px solid #93c5fd">CMP &lt;%ecx, %eax&gt;</code>
-            <code style="display:block;padding:3px 8px;border-radius:4px;font-size:12px;background:#dbeafe;color:#1e40af;border:1px solid #93c5fd">CMOVG &lt;%ecx, %eax&gt;</code>
-            <code style="display:block;padding:3px 8px;border-radius:4px;font-size:12px;color:#9ca3af;border:1px dashed #d1d5db">…（下一條待決定）</code>
-          </div>
-          <div style="font-size:11px;color:#1d4ed8;font-weight:600;margin-bottom:2px">↓ Transformer Encoder</div>
-          <div style="font-size:11px;color:#3b82f6">程式語法結構的 embedding</div>
-        </div>
-        <div style="display:flex;align-items:center;padding:0 14px;color:var(--muted);font-weight:800;font-size:22px">+</div>
-        <div style="background:#ecfdf5;border:1px solid #6ee7b7;border-radius:0 8px 8px 0;padding:14px">
-          <div style="font-size:11px;font-weight:600;color:#065f46;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Zt — 跑在測試輸入後的狀態</div>
-          <div style="display:grid;gap:4px;margin-bottom:12px">
-            <div style="font-size:12px;padding:4px 0;border-bottom:1px solid #bbf7d0;color:var(--muted)"><strong style="color:var(--ink)">輸入 [3,1,2]</strong> → %eax=3, %ecx=1…</div>
-            <div style="font-size:12px;padding:4px 0;border-bottom:1px solid #bbf7d0;color:var(--muted)"><strong style="color:var(--ink)">輸入 [2,3,1]</strong> → %eax=2, %ecx=3…</div>
-            <div style="font-size:12px;padding:4px 0;color:var(--muted)"><strong style="color:var(--ink)">輸入 [1,2,3]</strong> → %eax=1, %ecx=2…</div>
-          </div>
-          <div style="font-size:11px;color:#065f46;font-weight:600;margin-bottom:2px">↓ CPU State MLP</div>
-          <div style="font-size:11px;color:#047857">執行效果的 embedding</div>
-        </div>
-      </div>
-      <div style="margin-top:10px;text-align:center;font-size:12px;color:var(--muted)">↓ 兩個 embedding 合併 → AlphaDev 完整 state representation → Policy + Value 預測</div>
-      <div style="margin-top:10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.55">
-        <strong style="color:#92400e">為什麼需要 Zt？</strong>
-        光知道程式長什麼樣（Pt）不夠——兩段不同的指令序列可能讓 %eax 都等於 3，但對 %ecx 影響完全不同，下一步要加什麼指令也就不同。Zt 讓 agent 知道「程式跑起來做了什麼」，才能做出正確決策。
-      </div>
-    </div>
-
-    <!-- ── B: MCTS + Neural Network ── -->
-    <div style="background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-        <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--control);color:white;font-size:12px;font-weight:700;flex:0 0 auto">B</span>
-        <strong style="font-size:15px">MCTS 由神經網路引導——不是隨機嘗試</strong>
-      </div>
-      <p style="font-size:13px;color:var(--muted);margin:0 0 14px;line-height:1.55">
-        神經網路對每個 state 同時輸出兩個預測：<strong>Policy π</strong>（下一條指令選哪個的機率分布）和 <strong>Value V</strong>（從此 state 出發預計能得到多少 reward）。MCTS 用兩個信號做 UCB/PUCT 計算，把搜尋資源集中在「機率高且預期 reward 高」的分支。
-      </p>
-      <div style="background:#fafbfc;border:1px solid var(--line);border-radius:8px;padding:12px">
-        <svg viewBox="0 0 600 292" width="100%" xmlns="http://www.w3.org/2000/svg" style="display:block;font-family:ui-sans-serif,system-ui,sans-serif">
-          <!-- edges root→L1 -->
-          <line x1="300" y1="57" x2="110" y2="104" stroke="#6ee7b7" stroke-width="2.5"/>
-          <line x1="300" y1="57" x2="300" y2="104" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="5,3"/>
-          <line x1="300" y1="57" x2="490" y2="104" stroke="#fca5a5" stroke-width="1.5" stroke-dasharray="5,3"/>
-          <!-- edges LEFT_OPEN→L2 -->
-          <line x1="110" y1="157" x2="68" y2="201" stroke="#6ee7b7" stroke-width="1.5"/>
-          <line x1="110" y1="157" x2="168" y2="201" stroke="#059669" stroke-width="2.5"/>
-          <!-- Root -->
-          <rect x="220" y="14" width="160" height="44" rx="8" fill="#f8fafc" stroke="#d1d5db" stroke-width="1.5"/>
-          <text x="300" y="33" text-anchor="middle" font-size="12" font-weight="bold" fill="#374151">空程式（起點）</text>
-          <text x="300" y="51" text-anchor="middle" font-size="11" fill="#6b7280">V = 0.61</text>
-          <!-- label between root and L1 -->
-          <text x="300" y="90" text-anchor="middle" font-size="10" fill="#9ca3af">↓ 神經網路對每個候選指令輸出 π 和 V</text>
-          <!-- LEFT_OPEN: high π, high V -->
-          <rect x="24" y="104" width="172" height="54" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
-          <text x="110" y="122" text-anchor="middle" font-size="12" font-weight="bold" fill="#065f46">LEFT_OPEN</text>
-          <text x="110" y="138" text-anchor="middle" font-size="11" fill="#047857">π = 42%</text>
-          <text x="110" y="154" text-anchor="middle" font-size="11" fill="#059669">V = 0.82  ← 優先展開</text>
-          <!-- FRONT_OPEN: medium -->
-          <rect x="214" y="104" width="172" height="54" rx="8" fill="#f8fafc" stroke="#d1d5db" stroke-width="1.5"/>
-          <text x="300" y="122" text-anchor="middle" font-size="12" font-weight="bold" fill="#6b7280">FRONT_OPEN</text>
-          <text x="300" y="138" text-anchor="middle" font-size="11" fill="#9ca3af">π = 35%</text>
-          <text x="300" y="154" text-anchor="middle" font-size="11" fill="#9ca3af">V = 0.67  暫不展開</text>
-          <!-- GOAL_AHEAD: pruned -->
-          <rect x="404" y="104" width="172" height="54" rx="8" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5"/>
-          <text x="490" y="122" text-anchor="middle" font-size="12" font-weight="bold" fill="#b91c1c">GOAL_AHEAD</text>
-          <text x="490" y="138" text-anchor="middle" font-size="11" fill="#ef4444">π = 23%</text>
-          <text x="490" y="154" text-anchor="middle" font-size="11" fill="#ef4444">V = 0.21  ✕ 剪枝</text>
-          <!-- L2 grandchildren -->
-          <rect x="14" y="201" width="108" height="44" rx="7" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
-          <text x="68" y="219" text-anchor="middle" font-size="11" font-weight="bold" fill="#374151">+FRONT_OPEN</text>
-          <text x="68" y="235" text-anchor="middle" font-size="10" fill="#6b7280">V = 0.71</text>
-          <rect x="128" y="201" width="108" height="44" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="2.5"/>
-          <text x="182" y="219" text-anchor="middle" font-size="11" font-weight="bold" fill="#065f46">+LEFT_OPEN</text>
-          <text x="182" y="235" text-anchor="middle" font-size="10" fill="#059669">V = 0.89  ★ 最佳</text>
-          <!-- annotation for pruned -->
-          <text x="395" y="220" font-size="11" fill="#9ca3af">V 低 → 神經網路預測此</text>
-          <text x="395" y="234" font-size="11" fill="#9ca3af">分支 reward 不高</text>
-          <text x="395" y="252" font-size="11" fill="#ef4444">→ MCTS 不展開此子樹</text>
-          <!-- bottom note -->
-          <text x="300" y="283" text-anchor="middle" font-size="11" fill="#6b7280">最終：LEFT_OPEN → LEFT_OPEN 路徑 V 最高，為搜尋到的最佳程式</text>
-        </svg>
-      </div>
-      <div style="margin-top:10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.55">
-        <strong style="color:#92400e">和迷宮 Demo 的 cross-entropy 搜尋差在哪？</strong>
-        Cross-entropy 是「採樣一批程式，保留高分的，更新採樣分布」——每次都要跑完整個程式才能評分。
-        MCTS 則是「在搜尋樹上逐步展開，用 V 提前判斷一段 partial program 的前景」——不需要等程式寫完就能決定要不要繼續。在 10<sup>14+</sup> 的空間裡，這個差異非常關鍵。
-      </div>
-    </div>
-
-    <!-- ── C: Dual-Head Value Network ── -->
-    <div style="background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-        <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--control);color:white;font-size:12px;font-weight:700;flex:0 0 auto">C</span>
-        <strong style="font-size:15px">Dual-Head Value Network — 為什麼要兩個 value head？</strong>
-      </div>
-      <p style="font-size:13px;color:var(--muted);margin:0 0 14px;line-height:1.55">
-        對固定排序（Sort3/4/5）：code 長度和 latency 高度相關，單一 reward 夠用。
-        但對可變排序（VarSort）：程式需要 <strong>branching（分支）</strong>，code 長度和實際 latency <strong>不相關</strong>——更長的程式有時跑更快，因為避免了代價高的分支跳轉。需要兩個獨立的 value head 分開預測。
-      </p>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:0">
-        <div style="background:#f8fafc;border:1px solid #d1d5db;border-radius:8px;padding:10px 28px;font-weight:700;font-size:14px">候選程式 Pt</div>
-        <div style="color:#9ca3af;font-size:22px;line-height:1.8">↓</div>
-        <div style="background:#eff6ff;border:2px solid #93c5fd;border-radius:8px;padding:10px 32px;font-weight:700;font-size:14px;color:#1e40af">AlphaDev 神經網路</div>
-        <div style="display:flex;width:320px;justify-content:space-around;font-size:24px;color:#9ca3af;line-height:1.8"><span>↙</span><span>↘</span></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:500px">
-          <div style="background:#ecfdf5;border:1px solid #6ee7b7;border-radius:10px;padding:16px;text-align:center">
-            <div style="font-size:11px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Correctness Head</div>
-            <div style="font-size:26px;font-weight:800;color:#065f46;line-height:1.2">✓</div>
-            <div style="font-size:12px;color:#047857;margin-top:8px;line-height:1.45">預測所有測試輸入是否排序正確<br>用累積 correctness reward 訓練</div>
-            <div style="margin-top:8px;font-size:11px;color:#9ca3af;padding:4px 8px;background:#f0fdf4;border-radius:4px">固定 + 可變排序都需要</div>
-          </div>
-          <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:16px;text-align:center">
-            <div style="font-size:11px;font-weight:700;color:#9a3412;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Latency Head</div>
-            <div style="font-size:26px;font-weight:800;color:#9a3412;line-height:1.2">⏱</div>
-            <div style="font-size:12px;color:#c2410c;margin-top:8px;line-height:1.45">預測實際硬體執行時間<br>用物理機器測量值作為 MC target</div>
-            <div style="margin-top:8px;font-size:11px;color:#9ca3af;padding:4px 8px;background:#fffbeb;border-radius:4px">VarSort 分支程式必須獨立預測</div>
-          </div>
-        </div>
-      </div>
-      <div style="margin-top:14px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.55">
-        <strong style="color:#92400e">實際效果（論文 Table 1b）：</strong>
-        Dual-Head 設置下，VarSort3 latency 降 19.8%、VarSort4 降 15.7%、VarSort5 降 10.6%。
-        單一 head 的設置在 VarSort 上效果顯著較差，印證了兩個 head 的必要性。
-      </div>
-    </div>
-  </div>
 
 </main>
 
@@ -882,175 +643,54 @@ document.getElementById('resetBtn2').addEventListener('click', () => {
 });
 compInit();
 
-/* ═══════════════════════════════════════════════
-   Section 3: Generalization demo
-   ═══════════════════════════════════════════════ */
-const GEN_PROG = ['LEFT_OPEN'];
-let genDone = false;
-
-function gen5Init() {
-  genDone = false;
-  const container = document.getElementById('gen5');
-  container.innerHTML = '';
-  const defs = [
-    ...MAZES.map((m,i)      => ({ maze:m, label:`訓練 ${i+1}`, type:'train' })),
-    ...TEST_MAZES.map((m,i) => ({ maze:m, label:`測試 ${i+1}`, type:'test'  })),
-  ];
-  defs.forEach(({ maze, label, type }) => {
-    const card = document.createElement('div');
-    card.className = 'g5card' + (type==='test' ? ' test' : '');
-    card.innerHTML = `
-      <div class="g5title">${label}</div>
-      <span class="g5badge ${type}">${type==='test' ? '從未見過' : '訓練集'}</span>
-      <div class="g5maze"></div>
-      <div class="g5status">待執行…</div>
-    `;
-    container.appendChild(card);
-    const mazeEl = card.querySelector('.g5maze');
-    const start  = findTile(maze,'S');
-    renderMaze(mazeEl, maze, [start], start, type==='test');
-    if (type==='test') { mazeEl.style.opacity='0.3'; mazeEl.style.transition='opacity 400ms'; }
-  });
-}
-
-function gen5Run() {
-  if (genDone) return;
-  genDone = true;
-  const cards = document.getElementById('gen5').querySelectorAll('.g5card');
-  const defs  = [
-    ...MAZES.map(m      => ({ maze:m, type:'train' })),
-    ...TEST_MAZES.map(m => ({ maze:m, type:'test'  })),
-  ];
-  defs.forEach(({ maze, type }, i) => {
-    const delay = type==='test' ? (i - MAZES.length) * 700 + 200 : 0;
-    setTimeout(() => {
-      const card    = cards[i];
-      const mazeEl  = card.querySelector('.g5maze');
-      const statEl  = card.querySelector('.g5status');
-      const res     = runProgram(GEN_PROG, maze);
-      mazeEl.style.opacity = '1';
-      renderMaze(mazeEl, maze, res.path, res.path[res.path.length-1], true);
-      if (res.solved) {
-        statEl.textContent   = `✓ 解決！${res.path.length-1} 步`;
-        statEl.style.color   = 'var(--good)';
-        statEl.style.fontWeight = '700';
-      } else {
-        statEl.textContent = '✗ 失敗';
-        statEl.style.color = 'var(--bad)';
-      }
-    }, delay);
-  });
-}
 
 /* ═══════════════════════════════════════════════
-   Section 2 bonus: "換張迷宮" challenge
-   — RL side shows actual trial-and-error with wall hits
+   Section 5A: render Zt mini-mazes
+   Show agent positions after running ['FRONT_OPEN','LEFT_OPEN'] for 7 steps
+   on each of the 3 training mazes → demonstrates that Zt differs per maze
    ═══════════════════════════════════════════════ */
-
-// Simulated RL maze-1 policy applied to maze 2:
-// uses the "go right first, then down" bias learned from maze 1,
-// resulting in wall collisions and a winding confused path.
-const RL_MAZE2_STEPS = [
-  { pos:[1,1], blocked:false, log:"從起點出發，套用迷宮 1 的 Q-table…" },
-  { pos:[1,1], blocked:true,  wall:[1,2], log:"Q-table 建議：往右走（迷宮 1 最佳方向）→ ❌ 牆壁！迷宮 2 佈局不同" },
-  { pos:[2,1], blocked:false, log:"Q-table 次佳：往下走（迷宮 1 學的）→ 移動，但已偏離終點方向" },
-  { pos:[2,1], blocked:true,  wall:[2,2], log:"Q-table 建議：往右走（迷宮 1 最佳方向）→ ❌ 又撞牆！" },
-  { pos:[3,1], blocked:false, log:"Q-table 次佳：往下走（迷宮 1 學的）→ 繼續往下，離終點更遠了" },
-  { pos:[3,2], blocked:false, log:"Q-table 建議：往右走（迷宮 1 學的）→ 移動" },
-  { pos:[3,3], blocked:false, log:"Q-table 建議：往右走（迷宮 1 學的）→ 移動" },
-  { pos:[3,3], blocked:true,  wall:[3,4], log:"Q-table 建議：往右走（迷宮 1 學的）→ ❌ 撞牆！" },
-  { pos:[2,3], blocked:false, log:"Q-table 次佳：往上走（迷宮 1 學的）→ 走回頭路，浪費步數" },
-  { pos:[2,3], blocked:true,  wall:[2,4], log:"Q-table 建議：往右走（迷宮 1 學的）→ ❌ 第 4 次撞牆！" },
-  { pos:[1,3], blocked:false, log:"Q-table 次佳：往上走（迷宮 1 學的）→ 反而越走越遠離終點" },
-  { pos:[1,4], blocked:false, log:"Q-table 建議：往右走（迷宮 1 學的）→ 移動" },
-  { pos:[1,5], blocked:false, log:"Q-table 建議：往右走（迷宮 1 學的）→ 移動" },
-  { pos:[2,5], blocked:false, log:"✅ 碰巧到達！撞牆 4 次、走 13 步——每一步都在盲目套用迷宮 1 的 Q-value" },
-];
-
-function flashWallTile(mazeEl, maze, [wr, wc]) {
-  const tiles = mazeEl.querySelectorAll('.tile');
-  const tile  = tiles[wr * maze[0].length + wc];
-  if (!tile) return;
-  tile.classList.add('wall-flash');
-  setTimeout(() => tile.classList.remove('wall-flash'), 400);
-}
-
-document.getElementById('switchBtn').addEventListener('click', () => {
-  const btn = document.getElementById('switchBtn');
-  btn.textContent = '播放中…';
-  btn.disabled = true;
-
-  document.getElementById('switchGrid').style.display = 'grid';
-
-  const maze2      = MAZES[1];
-  const rlMazeEl   = document.getElementById('rlMaze2');
-  const advMazeEl  = document.getElementById('switchMaze');
-  const rl2Log     = document.getElementById('rl2Log');
-  const switchLog  = document.getElementById('switchLog');
-
-  // Compute AlphaDev path on maze 2
-  const advRes  = runProgram(['LEFT_OPEN'], maze2);
-  const advPath = advRes.path;
-  const advRule = advRes.ruleFired;
-
-  // Init both mazes
-  renderMaze(rlMazeEl,  maze2, [RL_MAZE2_STEPS[0].pos], RL_MAZE2_STEPS[0].pos, false);
-  renderMaze(advMazeEl, maze2, [advPath[0]], advPath[0], true);
-  rl2Log.textContent   = '套用迷宮 1 的 Q-table…';
-  switchLog.textContent = '執行 LEFT_OPEN 規則…';
-
-  let rlIdx   = 0;
-  let advIdx  = 0;
-  let rl2Walls = 0, rl2Moves = 0;
-  const rl2Visited = [RL_MAZE2_STEPS[0].pos];
-
-  const timer = setInterval(() => {
-    const rlDone  = rlIdx  >= RL_MAZE2_STEPS.length - 1;
-    const advDone = advIdx >= advPath.length - 1;
-    if (rlDone && advDone) {
-      clearInterval(timer);
-      btn.textContent = '已完成';
-      return;
-    }
-
-    // --- RL side ---
-    if (!rlDone) {
-      rlIdx++;
-      const s = RL_MAZE2_STEPS[rlIdx];
-      if (s.blocked) {
-        rl2Walls++;
-        document.getElementById('rl2Badge').classList.add('show');
-        setTimeout(() => document.getElementById('rl2Badge').classList.remove('show'), 800);
-        flashWallTile(rlMazeEl, maze2, s.wall);
-      } else {
-        rl2Moves++;
-        if (!rl2Visited.some(p => same(p, s.pos))) rl2Visited.push(s.pos);
-        renderMaze(rlMazeEl, maze2, rl2Visited, s.pos, false);
+(function renderZt() {
+  const container = document.getElementById('ztMazes');
+  if (!container) return;
+  const partial = ['FRONT_OPEN', 'LEFT_OPEN'];
+  MAZES.forEach((maze, i) => {
+    const start = findTile(maze, 'S');
+    let pos = start, dir = 1;
+    const path = [pos];
+    for (let s = 0; s < 7; s++) {
+      let moved = false;
+      for (const rule of partial) {
+        const fd   = DIRS[dir];
+        const front = addP(pos, fd);
+        const ld   = rot(dir, -1);
+        const lp   = addP(pos, DIRS[ld]);
+        if (rule === 'LEFT_OPEN' && isOpen(maze, lp)) {
+          pos = lp; dir = ld; moved = true; break;
+        } else if (rule === 'FRONT_OPEN' && isOpen(maze, front)) {
+          pos = front; moved = true; break;
+        }
       }
-      document.getElementById('rl2Walls').textContent = rl2Walls;
-      document.getElementById('rl2Steps').textContent = rl2Moves;
-      rl2Log.textContent = s.log;
+      if (!moved) dir = rot(dir, 1);
+      path.push(pos);
+      if (same(pos, findTile(maze, 'G'))) break;
     }
-
-    // --- AlphaDev side ---
-    if (!advDone) {
-      advIdx++;
-      renderMaze(advMazeEl, maze2, advPath.slice(0, advIdx+1), advPath[advIdx], true);
-      const fired = advRule[advIdx-1] || '';
-      if (advIdx === advPath.length - 1) {
-        switchLog.innerHTML = `✅ 解決！${advPath.length-1} 步，<strong style="color:var(--program)">撞牆 0 次</strong>，相同程式零修改`;
-      } else {
-        switchLog.textContent = fired !== 'TURN'
-          ? `步驟 ${advIdx}：${fired} 觸發 → 移動`
-          : `步驟 ${advIdx}：無規則 → 右轉`;
-      }
-    }
-  }, 900);
-});
-
-document.getElementById('genRunBtn').addEventListener('click', gen5Run);
-document.getElementById('genResetBtn').addEventListener('click', () => gen5Init());
-gen5Init();
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:grid;gap:3px;justify-items:start';
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:10px;color:var(--muted);font-weight:600';
+    lbl.textContent = '迷宮 ' + (i + 1);
+    const mazeEl = document.createElement('div');
+    mazeEl.className = 'g5maze';
+    const posLbl = document.createElement('div');
+    posLbl.style.cssText = 'font-size:10px;color:var(--muted)';
+    posLbl.textContent = '位置 [' + pos[0] + ',' + pos[1] + ']';
+    wrap.appendChild(lbl);
+    wrap.appendChild(mazeEl);
+    wrap.appendChild(posLbl);
+    container.appendChild(wrap);
+    renderMaze(mazeEl, maze, path, pos, false);
+  });
+})();
 </script>
 </body>
 </html>
