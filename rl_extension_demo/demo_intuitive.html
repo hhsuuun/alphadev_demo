@@ -874,7 +874,7 @@ document.getElementById('switchBtn').addEventListener('click', () => {
       if (s.blocked) {
         rl2Walls++;
         document.getElementById('rl2Badge').classList.add('show');
-        setTimeout(() => document.getElementById('rl2Badge').classList.remove('show'), 420);
+        setTimeout(() => document.getElementById('rl2Badge').classList.remove('show'), 800);
         flashWallTile(rlMazeEl, maze2, s.wall);
       } else {
         rl2Moves++;
@@ -899,7 +899,7 @@ document.getElementById('switchBtn').addEventListener('click', () => {
           : `步驟 ${advIdx}：無規則 → 右轉`;
       }
     }
-  }, 420);
+  }, 900);
 });
 
 document.getElementById('genRunBtn').addEventListener('click', gen5Run);
