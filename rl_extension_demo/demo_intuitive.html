@@ -528,6 +528,152 @@
     </div>
   </div>
 
+  <!-- ══════════════════════════════════════
+       Section 5: 三個論文核心技術細節
+       ══════════════════════════════════════ -->
+  <div class="sec sec-sep">
+    <h2>5. 三個論文核心技術細節</h2>
+    <p class="sec-sub">對應 PPT Slide 4 / 6 / 8——比 Demo 更深一層，讓報告更完整。</p>
+
+    <!-- ── A: State = Pt + Zt ── -->
+    <div style="background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--control);color:white;font-size:12px;font-weight:700;flex:0 0 auto">A</span>
+        <strong style="font-size:15px">State St = Pt（程式）+ Zt（執行狀態）</strong>
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin:0 0 14px;line-height:1.55">
+        迷宮 Demo 的 state 只有「目前位置」；真實 AlphaDev 的 state 有兩個部分：目前已寫的指令序列 Pt，加上把這段程式跑在所有測試輸入後的 register/memory 狀態 Zt。兩部分各自送給不同的 encoder 處理。
+      </p>
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch">
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px 0 0 8px;padding:14px">
+          <div style="font-size:11px;font-weight:600;color:#1d4ed8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Pt — 目前程式指令</div>
+          <div style="display:grid;gap:5px;margin-bottom:12px">
+            <code style="display:block;padding:3px 8px;border-radius:4px;font-size:12px;background:#dbeafe;color:#1e40af;border:1px solid #93c5fd">MOV &lt;%eax, (%rsi)&gt;</code>
+            <code style="display:block;padding:3px 8px;border-radius:4px;font-size:12px;background:#dbeafe;color:#1e40af;border:1px solid #93c5fd">CMP &lt;%ecx, %eax&gt;</code>
+            <code style="display:block;padding:3px 8px;border-radius:4px;font-size:12px;background:#dbeafe;color:#1e40af;border:1px solid #93c5fd">CMOVG &lt;%ecx, %eax&gt;</code>
+            <code style="display:block;padding:3px 8px;border-radius:4px;font-size:12px;color:#9ca3af;border:1px dashed #d1d5db">…（下一條待決定）</code>
+          </div>
+          <div style="font-size:11px;color:#1d4ed8;font-weight:600;margin-bottom:2px">↓ Transformer Encoder</div>
+          <div style="font-size:11px;color:#3b82f6">程式語法結構的 embedding</div>
+        </div>
+        <div style="display:flex;align-items:center;padding:0 14px;color:var(--muted);font-weight:800;font-size:22px">+</div>
+        <div style="background:#ecfdf5;border:1px solid #6ee7b7;border-radius:0 8px 8px 0;padding:14px">
+          <div style="font-size:11px;font-weight:600;color:#065f46;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Zt — 跑在測試輸入後的狀態</div>
+          <div style="display:grid;gap:4px;margin-bottom:12px">
+            <div style="font-size:12px;padding:4px 0;border-bottom:1px solid #bbf7d0;color:var(--muted)"><strong style="color:var(--ink)">輸入 [3,1,2]</strong> → %eax=3, %ecx=1…</div>
+            <div style="font-size:12px;padding:4px 0;border-bottom:1px solid #bbf7d0;color:var(--muted)"><strong style="color:var(--ink)">輸入 [2,3,1]</strong> → %eax=2, %ecx=3…</div>
+            <div style="font-size:12px;padding:4px 0;color:var(--muted)"><strong style="color:var(--ink)">輸入 [1,2,3]</strong> → %eax=1, %ecx=2…</div>
+          </div>
+          <div style="font-size:11px;color:#065f46;font-weight:600;margin-bottom:2px">↓ CPU State MLP</div>
+          <div style="font-size:11px;color:#047857">執行效果的 embedding</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;text-align:center;font-size:12px;color:var(--muted)">↓ 兩個 embedding 合併 → AlphaDev 完整 state representation → Policy + Value 預測</div>
+      <div style="margin-top:10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.55">
+        <strong style="color:#92400e">為什麼需要 Zt？</strong>
+        光知道程式長什麼樣（Pt）不夠——兩段不同的指令序列可能讓 %eax 都等於 3，但對 %ecx 影響完全不同，下一步要加什麼指令也就不同。Zt 讓 agent 知道「程式跑起來做了什麼」，才能做出正確決策。
+      </div>
+    </div>
+
+    <!-- ── B: MCTS + Neural Network ── -->
+    <div style="background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--control);color:white;font-size:12px;font-weight:700;flex:0 0 auto">B</span>
+        <strong style="font-size:15px">MCTS 由神經網路引導——不是隨機嘗試</strong>
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin:0 0 14px;line-height:1.55">
+        神經網路對每個 state 同時輸出兩個預測：<strong>Policy π</strong>（下一條指令選哪個的機率分布）和 <strong>Value V</strong>（從此 state 出發預計能得到多少 reward）。MCTS 用兩個信號做 UCB/PUCT 計算，把搜尋資源集中在「機率高且預期 reward 高」的分支。
+      </p>
+      <div style="background:#fafbfc;border:1px solid var(--line);border-radius:8px;padding:12px">
+        <svg viewBox="0 0 600 292" width="100%" xmlns="http://www.w3.org/2000/svg" style="display:block;font-family:ui-sans-serif,system-ui,sans-serif">
+          <!-- edges root→L1 -->
+          <line x1="300" y1="57" x2="110" y2="104" stroke="#6ee7b7" stroke-width="2.5"/>
+          <line x1="300" y1="57" x2="300" y2="104" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="5,3"/>
+          <line x1="300" y1="57" x2="490" y2="104" stroke="#fca5a5" stroke-width="1.5" stroke-dasharray="5,3"/>
+          <!-- edges LEFT_OPEN→L2 -->
+          <line x1="110" y1="157" x2="68" y2="201" stroke="#6ee7b7" stroke-width="1.5"/>
+          <line x1="110" y1="157" x2="168" y2="201" stroke="#059669" stroke-width="2.5"/>
+          <!-- Root -->
+          <rect x="220" y="14" width="160" height="44" rx="8" fill="#f8fafc" stroke="#d1d5db" stroke-width="1.5"/>
+          <text x="300" y="33" text-anchor="middle" font-size="12" font-weight="bold" fill="#374151">空程式（起點）</text>
+          <text x="300" y="51" text-anchor="middle" font-size="11" fill="#6b7280">V = 0.61</text>
+          <!-- label between root and L1 -->
+          <text x="300" y="90" text-anchor="middle" font-size="10" fill="#9ca3af">↓ 神經網路對每個候選指令輸出 π 和 V</text>
+          <!-- LEFT_OPEN: high π, high V -->
+          <rect x="24" y="104" width="172" height="54" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+          <text x="110" y="122" text-anchor="middle" font-size="12" font-weight="bold" fill="#065f46">LEFT_OPEN</text>
+          <text x="110" y="138" text-anchor="middle" font-size="11" fill="#047857">π = 42%</text>
+          <text x="110" y="154" text-anchor="middle" font-size="11" fill="#059669">V = 0.82  ← 優先展開</text>
+          <!-- FRONT_OPEN: medium -->
+          <rect x="214" y="104" width="172" height="54" rx="8" fill="#f8fafc" stroke="#d1d5db" stroke-width="1.5"/>
+          <text x="300" y="122" text-anchor="middle" font-size="12" font-weight="bold" fill="#6b7280">FRONT_OPEN</text>
+          <text x="300" y="138" text-anchor="middle" font-size="11" fill="#9ca3af">π = 35%</text>
+          <text x="300" y="154" text-anchor="middle" font-size="11" fill="#9ca3af">V = 0.67  暫不展開</text>
+          <!-- GOAL_AHEAD: pruned -->
+          <rect x="404" y="104" width="172" height="54" rx="8" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5"/>
+          <text x="490" y="122" text-anchor="middle" font-size="12" font-weight="bold" fill="#b91c1c">GOAL_AHEAD</text>
+          <text x="490" y="138" text-anchor="middle" font-size="11" fill="#ef4444">π = 23%</text>
+          <text x="490" y="154" text-anchor="middle" font-size="11" fill="#ef4444">V = 0.21  ✕ 剪枝</text>
+          <!-- L2 grandchildren -->
+          <rect x="14" y="201" width="108" height="44" rx="7" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+          <text x="68" y="219" text-anchor="middle" font-size="11" font-weight="bold" fill="#374151">+FRONT_OPEN</text>
+          <text x="68" y="235" text-anchor="middle" font-size="10" fill="#6b7280">V = 0.71</text>
+          <rect x="128" y="201" width="108" height="44" rx="7" fill="#ecfdf5" stroke="#059669" stroke-width="2.5"/>
+          <text x="182" y="219" text-anchor="middle" font-size="11" font-weight="bold" fill="#065f46">+LEFT_OPEN</text>
+          <text x="182" y="235" text-anchor="middle" font-size="10" fill="#059669">V = 0.89  ★ 最佳</text>
+          <!-- annotation for pruned -->
+          <text x="395" y="220" font-size="11" fill="#9ca3af">V 低 → 神經網路預測此</text>
+          <text x="395" y="234" font-size="11" fill="#9ca3af">分支 reward 不高</text>
+          <text x="395" y="252" font-size="11" fill="#ef4444">→ MCTS 不展開此子樹</text>
+          <!-- bottom note -->
+          <text x="300" y="283" text-anchor="middle" font-size="11" fill="#6b7280">最終：LEFT_OPEN → LEFT_OPEN 路徑 V 最高，為搜尋到的最佳程式</text>
+        </svg>
+      </div>
+      <div style="margin-top:10px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.55">
+        <strong style="color:#92400e">和迷宮 Demo 的 cross-entropy 搜尋差在哪？</strong>
+        Cross-entropy 是「採樣一批程式，保留高分的，更新採樣分布」——每次都要跑完整個程式才能評分。
+        MCTS 則是「在搜尋樹上逐步展開，用 V 提前判斷一段 partial program 的前景」——不需要等程式寫完就能決定要不要繼續。在 10<sup>14+</sup> 的空間裡，這個差異非常關鍵。
+      </div>
+    </div>
+
+    <!-- ── C: Dual-Head Value Network ── -->
+    <div style="background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--control);color:white;font-size:12px;font-weight:700;flex:0 0 auto">C</span>
+        <strong style="font-size:15px">Dual-Head Value Network — 為什麼要兩個 value head？</strong>
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin:0 0 14px;line-height:1.55">
+        對固定排序（Sort3/4/5）：code 長度和 latency 高度相關，單一 reward 夠用。
+        但對可變排序（VarSort）：程式需要 <strong>branching（分支）</strong>，code 長度和實際 latency <strong>不相關</strong>——更長的程式有時跑更快，因為避免了代價高的分支跳轉。需要兩個獨立的 value head 分開預測。
+      </p>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0">
+        <div style="background:#f8fafc;border:1px solid #d1d5db;border-radius:8px;padding:10px 28px;font-weight:700;font-size:14px">候選程式 Pt</div>
+        <div style="color:#9ca3af;font-size:22px;line-height:1.8">↓</div>
+        <div style="background:#eff6ff;border:2px solid #93c5fd;border-radius:8px;padding:10px 32px;font-weight:700;font-size:14px;color:#1e40af">AlphaDev 神經網路</div>
+        <div style="display:flex;width:320px;justify-content:space-around;font-size:24px;color:#9ca3af;line-height:1.8"><span>↙</span><span>↘</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:500px">
+          <div style="background:#ecfdf5;border:1px solid #6ee7b7;border-radius:10px;padding:16px;text-align:center">
+            <div style="font-size:11px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Correctness Head</div>
+            <div style="font-size:26px;font-weight:800;color:#065f46;line-height:1.2">✓</div>
+            <div style="font-size:12px;color:#047857;margin-top:8px;line-height:1.45">預測所有測試輸入是否排序正確<br>用累積 correctness reward 訓練</div>
+            <div style="margin-top:8px;font-size:11px;color:#9ca3af;padding:4px 8px;background:#f0fdf4;border-radius:4px">固定 + 可變排序都需要</div>
+          </div>
+          <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:16px;text-align:center">
+            <div style="font-size:11px;font-weight:700;color:#9a3412;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Latency Head</div>
+            <div style="font-size:26px;font-weight:800;color:#9a3412;line-height:1.2">⏱</div>
+            <div style="font-size:12px;color:#c2410c;margin-top:8px;line-height:1.45">預測實際硬體執行時間<br>用物理機器測量值作為 MC target</div>
+            <div style="margin-top:8px;font-size:11px;color:#9ca3af;padding:4px 8px;background:#fffbeb;border-radius:4px">VarSort 分支程式必須獨立預測</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:14px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.55">
+        <strong style="color:#92400e">實際效果（論文 Table 1b）：</strong>
+        Dual-Head 設置下，VarSort3 latency 降 19.8%、VarSort4 降 15.7%、VarSort5 降 10.6%。
+        單一 head 的設置在 VarSort 上效果顯著較差，印證了兩個 head 的必要性。
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <script>
