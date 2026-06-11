@@ -453,36 +453,66 @@
   </div>
 
   <!-- ══════════════════════════════════════
-       Section 4: 為什麼需要 RL？
+       Section 4: 對應到論文
        ══════════════════════════════════════ -->
   <div class="sec sec-sep">
-    <h2>4．AlphaDev 為什麼需要 RL？</h2>
-    <p class="sec-sub">AlphaDev 用 RL，但目標和一般 RL 完全不同——它在「程式空間」搜尋演算法，不是在「遊戲空間」學習怎麼玩。</p>
+    <h2>4．從迷宮 Demo 對應到論文</h2>
+    <p class="sec-sub">Demo 裡的迷宮規則搜尋，是 AlphaDev 核心機制的微縮版。以下是直接對應關係。</p>
 
-    <div class="insight-row">
-      <div class="icard">
-        <div class="icard-icon">🌲</div>
-        <div class="icard-title">MCTS 搜尋程式空間</div>
-        <div class="icard-desc">
-          組語程式空間超過 10<sup>14</sup> 種可能。RL 的 MCTS 在每個節點選擇「下一條指令」，
-          就像在迷宮探索中選擇「下一條規則」——差別只在規模：組語空間遠超迷宮。
+    <!-- Pipeline -->
+    <div style="background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">AlphaDev 原論文技術流程</div>
+      <div style="display:flex;align-items:stretch;gap:0">
+        <div style="flex:1;background:#f8fafc;border:1px solid var(--line);border-radius:8px 0 0 8px;padding:12px;text-align:center">
+          <div style="font-weight:700;font-size:13px">AssemblyGame</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">排序程式搜尋遊戲</div>
+        </div>
+        <div style="display:flex;align-items:center;padding:0 8px;color:var(--muted);font-weight:800">→</div>
+        <div style="flex:1;background:#f8fafc;border:1px solid var(--line);border-left:none;padding:12px;text-align:center">
+          <div style="font-weight:700;font-size:13px">append instruction</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">action = 新增一條組語</div>
+        </div>
+        <div style="display:flex;align-items:center;padding:0 8px;color:var(--muted);font-weight:800">→</div>
+        <div style="flex:1;background:#f8fafc;border:1px solid var(--line);border-left:none;padding:12px;text-align:center">
+          <div style="font-weight:700;font-size:13px">execute candidate</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">跑測資、量 latency</div>
+        </div>
+        <div style="display:flex;align-items:center;padding:0 8px;color:var(--muted);font-weight:800">→</div>
+        <div style="flex:1;background:#ecfdf5;border:1px solid #6ee7b7;border-radius:0 8px 8px 0;padding:12px;text-align:center">
+          <div style="font-weight:700;font-size:13px;color:#065f46">keep best program</div>
+          <div style="font-size:12px;color:#047857;margin-top:3px">correctness + speed</div>
         </div>
       </div>
-      <div class="icard">
-        <div class="icard-icon">🎯</div>
-        <div class="icard-title">Reward = 正確性 + 速度</div>
-        <div class="icard-desc">
-          和迷宮 demo 一樣同時考慮「解了幾張迷宮」和「程式長度」，AlphaDev 的 reward
-          同時考慮「排序結果是否正確」和「指令數夠不夠少」，缺一不可。
+    </div>
+
+    <!-- Mapping table -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+      <div style="background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px">State</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5">
+          <span style="display:block;color:var(--control);font-weight:600;margin-bottom:2px">迷宮 Demo</span>目前位置
+          <span style="display:block;color:var(--program);font-weight:600;margin:6px 0 2px">AlphaDev</span>目前程式 + execution state
         </div>
       </div>
-      <div class="icard">
-        <div class="icard-icon">📦</div>
-        <div class="icard-title">AI 發明程式，然後退場</div>
-        <div class="icard-desc">
-          一般 RL 的神經網路永遠是「玩家」；AlphaDev 的神經網路是「發明家」。
-          它把演算法發明出來後就退場，留下的幾十條組語指令已整合進 LLVM，
-          影響全球所有 C++ 程式。
+      <div style="background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px">Action</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5">
+          <span style="display:block;color:var(--control);font-weight:600;margin-bottom:2px">迷宮 Demo</span>加入一條規則
+          <span style="display:block;color:var(--program);font-weight:600;margin:6px 0 2px">AlphaDev</span>append 一條 x86 指令
+        </div>
+      </div>
+      <div style="background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px">Reward</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5">
+          <span style="display:block;color:var(--control);font-weight:600;margin-bottom:2px">迷宮 Demo</span>解了幾張迷宮 − 程式長度
+          <span style="display:block;color:var(--program);font-weight:600;margin:6px 0 2px">AlphaDev</span>correctness + latency
+        </div>
+      </div>
+      <div style="background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px">Output</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5">
+          <span style="display:block;color:var(--control);font-weight:600;margin-bottom:2px">迷宮 Demo</span>可解多張迷宮的規則
+          <span style="display:block;color:var(--program);font-weight:600;margin:6px 0 2px">AlphaDev</span>可部署進 LLVM 的排序程式
         </div>
       </div>
     </div>

@@ -601,57 +601,6 @@
       </section>
     </div>
 
-    <div class="intuition">
-      <section class="intuition-card">
-        <h2>直觀解說：AlphaDev 在「寫程式」</h2>
-        <p>
-          一般 RL 像訓練一個玩家：看到狀態就做下一步。
-          AlphaDev 比較像訓練一個程式發明家：它一步步加入 instruction，
-          最後產生一段可以獨立執行的排序演算法。
-        </p>
-      </section>
-      <section class="intuition-card">
-        <h2>對應到論文的關鍵概念</h2>
-        <div class="mini-table">
-          <div class="mini-row"><strong>Game</strong><span>AssemblyGame：把搜尋排序程式變成單人遊戲。</span></div>
-          <div class="mini-row"><strong>Action</strong><span>不是上下左右，而是新增一條 assembly instruction。</span></div>
-          <div class="mini-row"><strong>Reward</strong><span>執行候選程式後，用 correctness 與 latency 評分。</span></div>
-          <div class="mini-row"><strong>Output</strong><span>最後留下的是排序 routine，可部署到 LLVM，不是 policy model。</span></div>
-        </div>
-      </section>
-    </div>
-
-    <section class="pipeline">
-      <h2>AlphaDev 原論文技術流程</h2>
-      <div class="flow">
-        <div class="chip">AssemblyGame<small>排序程式搜尋遊戲</small></div>
-        <div class="arrow">→</div>
-        <div class="chip">append instruction<small>action 是新增組語</small></div>
-        <div class="arrow">→</div>
-        <div class="chip">execute candidate<small>跑測資與量 latency</small></div>
-        <div class="arrow">→</div>
-        <div class="chip">keep best program<small>correctness + speed</small></div>
-      </div>
-    </section>
-
-    <div class="mapping">
-      <div class="map-card">
-        <strong>State</strong>
-        <span>一般 RL 看「環境狀態」；AlphaDev 看「目前程式 + execution state」。</span>
-      </div>
-      <div class="map-card">
-        <strong>Action</strong>
-        <span>一般 RL 做 move；AlphaDev append 一條 assembly instruction。</span>
-      </div>
-      <div class="map-card">
-        <strong>Reward</strong>
-        <span>一般 RL 看遊戲分數；AlphaDev 看 correctness + latency。</span>
-      </div>
-      <div class="map-card">
-        <strong>Output</strong>
-        <span>一般 RL 輸出 policy；AlphaDev 輸出可部署的排序演算法。</span>
-      </div>
-    </div>
   </main>
 
   <script>
