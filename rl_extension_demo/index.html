@@ -1,0 +1,957 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AlphaDev</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17202a;
+      --muted: #5d6875;
+      --line: #d8dee6;
+      --paper: #ffffff;
+      --wash: #f6f8fb;
+      --blue: #2563eb;
+      --green: #0f8b6f;
+      --wall: #202938;
+      --path: #eef3f8;
+      --good: #15803d;
+      --bad: #b91c1c;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--wash);
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: end;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 30px;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button {
+      border: 1px solid #b8c4d6;
+      background: var(--paper);
+      color: var(--ink);
+      padding: 9px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button.primary {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: white;
+    }
+
+    .thesis {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .thesis-card,
+    .panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .thesis-card strong {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 5px;
+    }
+
+    .thesis-card span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .intuition {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 12px;
+    }
+
+    .intuition-card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      min-width: 0;
+    }
+
+    .intuition-card h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .intuition-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .mini-table {
+      display: grid;
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .mini-row {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 8px;
+      align-items: start;
+      padding: 8px 9px;
+      border: 1px solid #e1e7f0;
+      border-radius: 7px;
+      background: #fbfcfe;
+      font-size: 13px;
+    }
+
+    .mini-row strong {
+      color: var(--ink);
+    }
+
+    .mini-row span {
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .vs {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 42px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .pipeline {
+      margin-top: 14px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .pipeline h2,
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .flow.short {
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+    }
+
+    .chip {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border: 1px solid #d4dce8;
+      border-radius: 8px;
+      background: #fbfcfe;
+      padding: 8px;
+      font-size: 13px;
+      line-height: 1.25;
+      font-weight: 800;
+    }
+
+    .chip small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .arrow {
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: 0.82fr 1.18fr;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 12px;
+      font-weight: 800;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      white-space: nowrap;
+    }
+
+    .pill.green {
+      background: #ecfdf5;
+      color: #047857;
+      border-color: #a7f3d0;
+    }
+
+    .maze {
+      display: grid;
+      grid-template-columns: repeat(7, 30px);
+      grid-template-rows: repeat(7, 30px);
+      gap: 3px;
+      padding: 8px;
+      width: max-content;
+      max-width: 100%;
+      background: #e7ecf3;
+      border: 1px solid #cfd8e5;
+      border-radius: 8px;
+    }
+
+    .mini-mazes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .mini-card {
+      display: grid;
+      gap: 6px;
+      border: 1px solid #d9e1eb;
+      border-radius: 8px;
+      padding: 8px;
+      background: #fbfcfe;
+      min-width: 0;
+    }
+
+    .mini-card strong {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .mini-card .maze {
+      grid-template-columns: repeat(7, 18px);
+      grid-template-rows: repeat(7, 18px);
+      gap: 2px;
+      padding: 4px;
+    }
+
+    .tile {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 5px;
+      font-size: 13px;
+      font-weight: 900;
+      background: var(--path);
+      color: #1f2937;
+    }
+
+    .mini-card .tile {
+      width: 18px;
+      height: 18px;
+      border-radius: 3px;
+      font-size: 9px;
+    }
+
+    .wall { background: var(--wall); }
+    .start { background: #fef3c7; color: #92400e; }
+    .goal { background: #dcfce7; color: #166534; }
+    .visited { background: #dbeafe; color: #1d4ed8; }
+    .programVisited { background: #dff6ef; color: #047857; }
+    .agent { outline: 3px solid var(--blue); outline-offset: -3px; }
+    .programAgent { outline: 3px solid var(--green); outline-offset: -3px; }
+
+    .metric {
+      display: grid;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .metric-top {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .bar {
+      height: 10px;
+      background: #e5eaf1;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: var(--blue);
+      transition: width 180ms ease;
+    }
+
+    .bar.green span { background: var(--green); }
+
+    .search-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .program-box {
+      border: 1px solid #d9e1eb;
+      border-radius: 8px;
+      padding: 10px;
+      background: #fbfcfe;
+      display: grid;
+      gap: 7px;
+    }
+
+    .program-box b {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .program-row {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      min-height: 34px;
+      align-items: center;
+    }
+
+    .instruction {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 108px;
+      height: 32px;
+      border-radius: 6px;
+      padding: 0 9px;
+      background: #e6f5f1;
+      color: #075e4c;
+      border: 1px solid #9fd6c8;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .instruction.pending {
+      background: #f2f4f7;
+      color: #677282;
+      border-color: #d4dbe5;
+    }
+
+    .trace-table {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .trace-row {
+      display: grid;
+      grid-template-columns: minmax(120px, 1fr) 76px 86px;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 9px;
+      border: 1px solid #dfe6ef;
+      border-radius: 7px;
+      background: #ffffff;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .trace-row.current {
+      border-color: #88cdbb;
+      background: #eefbf7;
+      color: #075e4c;
+    }
+
+    .trace-row.best {
+      border-color: #7abfae;
+      box-shadow: inset 3px 0 0 var(--green);
+    }
+
+    .trace-row code {
+      color: inherit;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .log {
+      min-height: 42px;
+      padding: 10px 12px;
+      border: 1px solid #d7dee9;
+      border-radius: 6px;
+      background: #fbfcfe;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      margin-top: 10px;
+    }
+
+    .mapping {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .map-card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .map-card strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+
+    .map-card span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 980px) {
+      header,
+      .thesis,
+      .intuition,
+      .demo-grid,
+      .search-grid,
+      .mapping {
+        grid-template-columns: 1fr;
+      }
+
+      .toolbar { justify-content: flex-start; }
+      .vs { min-height: 10px; }
+      .flow,
+      .flow.short { grid-template-columns: 1fr; }
+      .arrow { display: none; }
+      .mini-mazes { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>AlphaDev</h1>
+        <p class="subtitle">核心：把「設計演算法」變成強化學習問題，讓 agent 搜尋可部署的程式。</p>
+      </div>
+    </header>
+
+    <div class="thesis">
+      <div class="thesis-card">
+        <strong>一般 RL：學會行動</strong>
+        <span>模型在每個 state 決定下一步 action。部署時仍需要 policy 在線上做決策。</span>
+      </div>
+      <div class="vs">VS</div>
+      <div class="thesis-card">
+        <strong>AlphaDev：發現程式</strong>
+        <span>模型與搜尋負責產生候選 program；最後部署的是演算法本身，不是神經網路。</span>
+      </div>
+    </div>
+
+    <div class="toolbar" style="margin-top:14px;justify-content:flex-start">
+      <button id="stepBtn">單步</button>
+      <button id="runBtn" class="primary">demo</button>
+      <button id="resetBtn">重置</button>
+    </div>
+
+    <div class="demo-grid">
+      <section class="panel">
+        <h2>一般 RL Demo：訓練玩家</h2>
+        <div class="label-row">
+          <span>state = 目前位置，action = 上下左右</span>
+          <span class="pill">policy online</span>
+        </div>
+        <div class="flow short">
+          <div class="chip">目前位置</div>
+          <div class="arrow">→</div>
+          <div class="chip">模型選 move</div>
+          <div class="arrow">→</div>
+          <div class="chip">走下一格</div>
+        </div>
+        <div style="margin-top:12px">
+          <div class="maze" id="ordinaryMaze"></div>
+          <div class="metric">
+            <div class="metric-top"><span>單一迷宮進度</span><strong id="ordinaryScore">0%</strong></div>
+            <div class="bar"><span id="ordinaryBar"></span></div>
+          </div>
+        </div>
+        <div class="log" id="ordinaryLog"></div>
+      </section>
+
+      <section class="panel">
+        <h2>AlphaDev-like Demo：搜尋解法程式</h2>
+        <div class="label-row">
+          <span>state = partial program，action = append rule</span>
+          <span class="pill green">program offline</span>
+        </div>
+        <div class="flow">
+          <div class="chip">候選程式</div>
+          <div class="arrow">→</div>
+          <div class="chip">跑 3 張迷宮</div>
+          <div class="arrow">→</div>
+          <div class="chip">算 reward</div>
+          <div class="arrow">→</div>
+          <div class="chip">保留最佳</div>
+        </div>
+        <div style="margin-top:12px">
+          <div class="trace-table" id="traceTable"></div>
+          <div class="search-grid">
+            <div class="program-box">
+              <b>current candidate <span id="candidateScore">0 / 3</span></b>
+              <div class="program-row" id="candidateRow"></div>
+            </div>
+            <div class="program-box">
+              <b>best so far <span id="bestScore">0 / 3</span></b>
+              <div class="program-row" id="bestRow"></div>
+            </div>
+          </div>
+          <div class="metric">
+            <div class="metric-top"><span>跨迷宮 correctness</span><strong id="programScore">0%</strong></div>
+            <div class="bar green"><span id="programBar"></span></div>
+          </div>
+          <div class="mini-mazes" id="programMazes" style="margin-top:10px"></div>
+        </div>
+        <div class="log" id="programLog"></div>
+      </section>
+    </div>
+
+    <div class="intuition">
+      <section class="intuition-card">
+        <h2>直觀解說：AlphaDev 在「寫程式」</h2>
+        <p>
+          一般 RL 像訓練一個玩家：看到狀態就做下一步。
+          AlphaDev 比較像訓練一個程式發明家：它一步步加入 instruction，
+          最後產生一段可以獨立執行的排序演算法。
+        </p>
+      </section>
+      <section class="intuition-card">
+        <h2>對應到論文的關鍵概念</h2>
+        <div class="mini-table">
+          <div class="mini-row"><strong>Game</strong><span>AssemblyGame：把搜尋排序程式變成單人遊戲。</span></div>
+          <div class="mini-row"><strong>Action</strong><span>不是上下左右，而是新增一條 assembly instruction。</span></div>
+          <div class="mini-row"><strong>Reward</strong><span>執行候選程式後，用 correctness 與 latency 評分。</span></div>
+          <div class="mini-row"><strong>Output</strong><span>最後留下的是排序 routine，可部署到 LLVM，不是 policy model。</span></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="pipeline">
+      <h2>AlphaDev 原論文技術流程</h2>
+      <div class="flow">
+        <div class="chip">AssemblyGame<small>排序程式搜尋遊戲</small></div>
+        <div class="arrow">→</div>
+        <div class="chip">append instruction<small>action 是新增組語</small></div>
+        <div class="arrow">→</div>
+        <div class="chip">execute candidate<small>跑測資與量 latency</small></div>
+        <div class="arrow">→</div>
+        <div class="chip">keep best program<small>correctness + speed</small></div>
+      </div>
+    </section>
+
+    <div class="mapping">
+      <div class="map-card">
+        <strong>State</strong>
+        <span>一般 RL 看「環境狀態」；AlphaDev 看「目前程式 + execution state」。</span>
+      </div>
+      <div class="map-card">
+        <strong>Action</strong>
+        <span>一般 RL 做 move；AlphaDev append 一條 assembly instruction。</span>
+      </div>
+      <div class="map-card">
+        <strong>Reward</strong>
+        <span>一般 RL 看遊戲分數；AlphaDev 看 correctness + latency。</span>
+      </div>
+      <div class="map-card">
+        <strong>Output</strong>
+        <span>一般 RL 輸出 policy；AlphaDev 輸出可部署的排序演算法。</span>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const mazes = [
+      [
+        "#######",
+        "#S....#",
+        "#.###.#",
+        "#...#.#",
+        "###.#.#",
+        "#....G#",
+        "#######",
+      ],
+      [
+        "#######",
+        "#S#...#",
+        "#.#.#G#",
+        "#...#.#",
+        "###.#.#",
+        "#.....#",
+        "#######",
+      ],
+      [
+        "#######",
+        "#S....#",
+        "###.#.#",
+        "#...#.#",
+        "#.###.#",
+        "#....G#",
+        "#######",
+      ],
+    ];
+
+    const ordinaryPath = [
+      [1, 1], [1, 2], [1, 3], [1, 4], [1, 5],
+      [2, 5], [3, 5], [4, 5], [5, 5],
+    ];
+
+    const searchTrace = [
+      {
+        program: ["GOAL_AHEAD"],
+        note: "候選程式只會在終點正前方時前進，幾乎不探索，所以 reward 很低。"
+      },
+      {
+        program: ["FRONT_OPEN"],
+        note: "只往前走可以解部分迷宮，但遇到轉角或阻擋會失敗。"
+      },
+      {
+        program: ["FRONT_OPEN", "LEFT_OPEN"],
+        note: "加上第二條 rule 後通過全部迷宮，但 program 較長。"
+      },
+      {
+        program: ["LEFT_OPEN"],
+        note: "長度懲罰讓搜尋保留更短的程式：一條 rule 就能泛化到三張迷宮。"
+      },
+    ];
+
+    const programSlots = 3;
+    const directions = [[-1, 0], [0, 1], [1, 0], [0, -1]];
+    const maxProgramSteps = 80;
+
+    let ordinaryStep = 0;
+    let searchStep = -1;
+    let program = [];
+    let bestProgram = [];
+    let timer = null;
+
+    const ordinaryMazeEl = document.getElementById("ordinaryMaze");
+    const ordinaryScoreEl = document.getElementById("ordinaryScore");
+    const ordinaryBarEl = document.getElementById("ordinaryBar");
+    const ordinaryLogEl = document.getElementById("ordinaryLog");
+    const traceTableEl = document.getElementById("traceTable");
+    const candidateRowEl = document.getElementById("candidateRow");
+    const bestRowEl = document.getElementById("bestRow");
+    const candidateScoreEl = document.getElementById("candidateScore");
+    const bestScoreEl = document.getElementById("bestScore");
+    const programScoreEl = document.getElementById("programScore");
+    const programBarEl = document.getElementById("programBar");
+    const programMazesEl = document.getElementById("programMazes");
+    const programLogEl = document.getElementById("programLog");
+    const runBtn = document.getElementById("runBtn");
+
+    function same(a, b) {
+      return a[0] === b[0] && a[1] === b[1];
+    }
+
+    function add(a, b) {
+      return [a[0] + b[0], a[1] + b[1]];
+    }
+
+    function findTile(maze, tile) {
+      for (let r = 0; r < maze.length; r += 1) {
+        for (let c = 0; c < maze[r].length; c += 1) {
+          if (maze[r][c] === tile) return [r, c];
+        }
+      }
+      return [-1, -1];
+    }
+
+    function isOpen(maze, point) {
+      return maze[point[0]][point[1]] !== "#";
+    }
+
+    function rotate(direction, amount) {
+      return (direction + amount + 4) % 4;
+    }
+
+    function executeRuleProgram(candidate, maze) {
+      let position = findTile(maze, "S");
+      const goal = findTile(maze, "G");
+      let direction = 1;
+      const path = [position];
+
+      for (let step = 0; step < maxProgramSteps; step += 1) {
+        let moved = false;
+        for (const rule of candidate) {
+          const front = add(position, directions[direction]);
+          const leftDir = rotate(direction, -1);
+          const left = add(position, directions[leftDir]);
+          if (rule === "GOAL_AHEAD" && same(front, goal)) {
+            position = front;
+            moved = true;
+            break;
+          }
+          if (rule === "LEFT_OPEN" && isOpen(maze, left)) {
+            direction = leftDir;
+            position = left;
+            moved = true;
+            break;
+          }
+          if (rule === "FRONT_OPEN" && isOpen(maze, front)) {
+            position = front;
+            moved = true;
+            break;
+          }
+        }
+        if (!moved) {
+          direction = rotate(direction, 1);
+        }
+        path.push(position);
+        if (same(position, goal)) {
+          return { solved: true, path };
+        }
+      }
+      return { solved: false, path };
+    }
+
+    function tileClass(maze, point, visited, current, programMode) {
+      const char = maze[point[0]][point[1]];
+      const isVisited = visited.some(p => same(p, point));
+      const classes = ["tile"];
+      if (char === "#") classes.push("wall");
+      if (char === "S") classes.push("start");
+      if (char === "G") classes.push("goal");
+      if (isVisited && char === ".") classes.push(programMode ? "programVisited" : "visited");
+      if (current && same(current, point)) classes.push(programMode ? "programAgent" : "agent");
+      return classes.join(" ");
+    }
+
+    function renderMaze(container, maze, visited, current, programMode = false) {
+      const cells = [];
+      for (let r = 0; r < maze.length; r += 1) {
+        for (let c = 0; c < maze[r].length; c += 1) {
+          const char = maze[r][c];
+          const label = char === "#" ? "" : char;
+          cells.push(`<span class="${tileClass(maze, [r, c], visited, current, programMode)}">${label}</span>`);
+        }
+      }
+      container.innerHTML = cells.join("");
+    }
+
+    function solvedCount(candidate) {
+      return mazes.map(maze => executeRuleProgram(candidate, maze)).filter(result => result.solved).length;
+    }
+
+    function sameProgram(left, right) {
+      return left.length === right.length && left.every((rule, index) => rule === right[index]);
+    }
+
+    function renderSlots(container, candidate, slotCount = programSlots) {
+      const pieces = [];
+      for (let i = 0; i < slotCount; i += 1) {
+        if (candidate[i]) {
+          pieces.push(`<span class="instruction">${candidate[i]}</span>`);
+        } else {
+          pieces.push(`<span class="instruction pending">empty</span>`);
+        }
+      }
+      container.innerHTML = pieces.join("");
+    }
+
+    function renderTrace() {
+      traceTableEl.innerHTML = searchTrace.map((trace, index) => {
+        const solved = solvedCount(trace.program);
+        const isCurrent = index === searchStep;
+        const isBest = bestProgram.length > 0 && sameProgram(trace.program, bestProgram);
+        const classes = ["trace-row"];
+        if (isCurrent) classes.push("current");
+        if (isBest) classes.push("best");
+        const label = trace.program.join(" + ");
+        const status = isBest ? "best" : isCurrent ? "current" : "candidate";
+        return `<div class="${classes.join(" ")}"><code>${label}</code><span>${solved}/3 mazes</span><span>${status}</span></div>`;
+      }).join("");
+    }
+
+    function renderOrdinary() {
+      const visited = ordinaryPath.slice(0, ordinaryStep + 1);
+      const current = visited[visited.length - 1];
+      renderMaze(ordinaryMazeEl, mazes[0], visited, current, false);
+      const score = ordinaryStep / (ordinaryPath.length - 1);
+      ordinaryScoreEl.textContent = `${Math.round(score * 100)}%`;
+      ordinaryBarEl.style.width = `${Math.round(score * 100)}%`;
+      ordinaryLogEl.innerHTML = score === 1
+        ? "一般 RL 完成這張迷宮；但部署時仍需要 policy 在每個 state 決定下一步。"
+        : "這邊展示的是標準 RL：agent 直接控制玩家，一步一步走。";
+    }
+
+    function renderProgram() {
+      renderTrace();
+      renderSlots(candidateRowEl, program);
+      renderSlots(bestRowEl, bestProgram);
+
+      const candidateSolved = solvedCount(program);
+      const bestSolved = solvedCount(bestProgram);
+      candidateScoreEl.textContent = `${candidateSolved} / ${mazes.length}`;
+      bestScoreEl.textContent = `${bestSolved} / ${mazes.length}`;
+
+      const results = mazes.map(maze => executeRuleProgram(program, maze));
+      const score = candidateSolved / mazes.length;
+      programScoreEl.textContent = `${Math.round(score * 100)}%`;
+      programBarEl.style.width = `${Math.round(score * 100)}%`;
+      programMazesEl.innerHTML = "";
+
+      results.forEach((result, index) => {
+        const card = document.createElement("div");
+        card.className = "mini-card";
+        const status = result.solved ? "solved" : "testing";
+        card.innerHTML = `<strong>Maze ${index + 1}: ${status}</strong><div class="maze"></div>`;
+        programMazesEl.appendChild(card);
+        renderMaze(card.querySelector(".maze"), mazes[index], result.path, result.path[result.path.length - 1], true);
+      });
+
+      if (searchStep < 0) {
+        programLogEl.innerHTML = "AlphaDev-like 的決策單位不是 move，而是「下一條程式規則」。每個候選 program 都會被執行、評分、比較。";
+      } else {
+        const trace = searchTrace[searchStep];
+        programLogEl.innerHTML = `${trace.note} 這對應 AlphaDev 用 correctness + latency reward 評估候選 assembly program。`;
+      }
+    }
+
+    function step() {
+      if (ordinaryStep < ordinaryPath.length - 1) {
+        ordinaryStep += 1;
+      }
+      if (searchStep < searchTrace.length - 1) {
+        searchStep += 1;
+        program = searchTrace[searchStep].program.slice();
+        const programSolved = solvedCount(program);
+        const bestSolved = solvedCount(bestProgram);
+        if (
+          programSolved > bestSolved ||
+          (programSolved === bestSolved && (bestProgram.length === 0 || program.length < bestProgram.length))
+        ) {
+          bestProgram = program.slice();
+        }
+      }
+      renderOrdinary();
+      renderProgram();
+      if (ordinaryStep === ordinaryPath.length - 1 && searchStep === searchTrace.length - 1 && timer) {
+        clearInterval(timer);
+        timer = null;
+        runBtn.textContent = "demo";
+      }
+    }
+
+    function reset() {
+      ordinaryStep = 0;
+      searchStep = -1;
+      program = [];
+      bestProgram = [];
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+      runBtn.textContent = "demo";
+      renderOrdinary();
+      renderProgram();
+    }
+
+    document.getElementById("stepBtn").addEventListener("click", step);
+    document.getElementById("resetBtn").addEventListener("click", reset);
+    runBtn.addEventListener("click", () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+        runBtn.textContent = "demo";
+        return;
+      }
+      runBtn.textContent = "暫停";
+      timer = setInterval(step, 800);
+    });
+
+    reset();
+  </script>
+</body>
+</html>

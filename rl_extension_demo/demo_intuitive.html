@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AlphaDev 直觀解說</title>
+  <style>
+    :root {
+      --ink: #17202a; --muted: #5d6875; --line: #d8dee6;
+      --paper: #ffffff; --wash: #f6f8fb;
+      --control: #2563eb; --program: #0f8b6f;
+      --bad: #b91c1c; --good: #15803d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink); background: var(--wash);
+    }
+    main { max-width: 1120px; margin: 0 auto; padding: 32px 24px; }
+
+    /* ── page header ── */
+    .page-hd { margin-bottom: 36px; padding-bottom: 20px; border-bottom: 2px solid var(--line); }
+    h1 { margin: 0 0 6px; font-size: 28px; line-height: 1.1; }
+    .page-sub { margin: 0 0 10px; color: var(--muted); font-size: 15px; line-height: 1.5; }
+    .back-link { font-size: 13px; }
+    .back-link a { color: var(--control); text-decoration: none; font-weight: 600; }
+
+    /* ── section ── */
+    .sec { margin-bottom: 44px; }
+    .sec-sep { border-top: 2px solid var(--line); padding-top: 36px; }
+    h2 { margin: 0 0 5px; font-size: 21px; font-weight: 700; }
+    .sec-sub { margin: 0 0 20px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+
+    /* ── Section 1: paradigm lifecycle cards ── */
+    .para-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .pcard {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 12px; padding: 20px; display: grid; gap: 14px;
+    }
+    .pcard.rl  { border-top: 4px solid var(--control); }
+    .pcard.adv { border-top: 4px solid var(--program); }
+    .pcard-title { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+    .pdot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; }
+
+    /* phase strip */
+    .phases { display: flex; align-items: stretch; }
+    .phase  { flex: 1; border: 1px solid var(--line); padding: 10px 11px; font-size: 12px; line-height: 1.4; }
+    .phase:first-child { border-radius: 8px 0 0 8px; }
+    .phase:last-child  { border-radius: 0 8px 8px 0; }
+    .phase.hi      { background: #eff6ff; border-color: #93c5fd; }
+    .phase.hi.good { background: #ecfdf5; border-color: #6ee7b7; }
+    .ph-arr { display: flex; align-items: center; padding: 0 5px; color: var(--muted); font-weight: 800; font-size: 15px; }
+    .ph-lbl  { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
+    .ph-name { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+    .ph-desc { color: var(--muted); }
+
+    /* inference loop box */
+    .inf-box {
+      border: 1px solid var(--line); border-radius: 8px;
+      padding: 12px 14px; background: #fafbfc;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .inf-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; justify-content: center; }
+    .chip {
+      padding: 6px 11px; border-radius: 6px; font-size: 12px; font-weight: 600;
+      border: 1px solid; white-space: nowrap;
+      transition: transform 200ms ease, box-shadow 200ms ease;
+    }
+    .chip.pos   { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; font-family: monospace; }
+    .chip.model { background: #fff7ed; border-color: #fed7aa; color: #9a3412; }
+    .chip.act   { background: #f0fdf4; border-color: #bbf7d0; color: #166534; font-family: monospace; }
+    .chip.rule  { background: #ecfdf5; border-color: #6ee7b7; color: #065f46; font-family: monospace; }
+    .chip.res   { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+    .inf-arr    { color: var(--muted); font-weight: 800; }
+    .inf-lbl    { font-size: 11px; color: var(--muted); }
+
+    .key-box {
+      margin-top: 18px; background: #fffbeb; border: 1px solid #fde68a;
+      border-radius: 10px; padding: 14px 16px; font-size: 14px; line-height: 1.6;
+    }
+
+    /* ── Section 2: side-by-side maze ── */
+    .comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .comp-card {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 12px; padding: 18px; display: grid; gap: 12px;
+    }
+    .comp-card.adv { border-color: #9fd6c8; background: #f7fffe; }
+    .comp-head { display: flex; justify-content: space-between; align-items: center; }
+    .comp-title { font-weight: 700; font-size: 15px; }
+    .mbadge { padding: 4px 10px; border-radius: 5px; font-size: 12px; font-weight: 700; }
+    .mbadge.needs { background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; }
+    .mbadge.free  { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+
+    /* maze tiles (same as index.html) */
+    .maze {
+      display: grid;
+      grid-template-columns: repeat(7, 32px);
+      grid-template-rows: repeat(7, 32px);
+      gap: 3px; padding: 8px;
+      width: max-content;
+      background: #e7ecf3; border: 1px solid #cfd8e5; border-radius: 8px;
+    }
+    .tile {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 5px;
+      font-size: 12px; font-weight: 800;
+      background: #eef3f8; color: #1f2937;
+    }
+    .wall    { background: #202938; }
+    .start   { background: #fef3c7; color: #92400e; }
+    .goal    { background: #dcfce7; color: #166534; }
+    .visited { background: #dbeafe; color: #1d4ed8; }
+    .pvisited { background: #dff6ef; color: #047857; }
+    .agent  { outline: 3px solid var(--control); outline-offset: -3px; }
+    .pagent { outline: 3px solid var(--program); outline-offset: -3px; }
+
+    .maze-wrap { display: flex; justify-content: center; position: relative; }
+
+    /* floating badge over maze */
+    .over-badge {
+      position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+      border-radius: 6px; padding: 4px 11px; font-size: 12px; font-weight: 700;
+      opacity: 0; transition: opacity 180ms ease; white-space: nowrap; pointer-events: none;
+      z-index: 10;
+    }
+    .over-badge.thinking { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; }
+    .over-badge.firing   { background: #ecfdf5; border: 1px solid #6ee7b7; color: #065f46; }
+    .over-badge.show     { opacity: 1; }
+
+    /* stats row */
+    .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat-box {
+      background: var(--wash); border: 1px solid var(--line); border-radius: 8px;
+      padding: 10px 12px; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    }
+    .stat-num { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+    .stat-lbl { font-size: 11px; color: var(--muted); text-align: center; }
+    @keyframes numPop { 0%,100%{transform:scale(1)} 40%{transform:scale(1.25)} }
+    .num-pop { animation: numPop 300ms ease; }
+
+    .logbox {
+      min-height: 44px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 7px;
+      background: var(--wash); font-size: 13px; color: var(--muted); line-height: 1.4;
+    }
+
+    .ctrl-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .btn { padding: 8px 16px; border-radius: 7px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid; }
+    .btn.primary { background: var(--control); border-color: var(--control); color: white; }
+    .btn.ghost   { background: white; border-color: var(--line); color: var(--ink); }
+
+    .note-box {
+      margin-top: 14px; padding: 10px 14px; background: var(--paper);
+      border: 1px solid var(--line); border-radius: 8px; font-size: 13px; color: var(--muted); line-height: 1.55;
+    }
+
+    /* ── Section 3: 5-maze generalization ── */
+    .gen-tags { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+    .gtag {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: 13px; font-weight: 600; padding: 4px 12px; border-radius: 999px;
+    }
+    .gtag.train { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .gtag.test  { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+
+    .gen5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    .g5card {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 10px; padding: 12px; display: grid; gap: 7px;
+    }
+    .g5card.test { border-color: #86efac; background: #f0fdf4; }
+    .g5maze {
+      display: grid;
+      grid-template-columns: repeat(7, 18px);
+      grid-template-rows: repeat(7, 18px);
+      gap: 2px; padding: 5px; width: max-content;
+      background: #e7ecf3; border: 1px solid #cfd8e5; border-radius: 6px;
+    }
+    .g5maze .tile { width: 18px; height: 18px; border-radius: 3px; font-size: 9px; }
+    .g5title { font-size: 12px; font-weight: 700; }
+    .g5badge {
+      font-size: 11px; padding: 2px 7px; border-radius: 4px;
+      font-weight: 600; width: fit-content;
+    }
+    .g5badge.train { background: #dbeafe; color: #1d4ed8; }
+    .g5badge.test  { background: #dcfce7; color: #166534; }
+    .g5status { font-size: 11px; color: var(--muted); min-height: 14px; }
+
+    /* ── Section 4: insight cards ── */
+    .insight-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .icard {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 12px; padding: 18px; display: grid; gap: 6px;
+    }
+    .icard-icon  { font-size: 26px; }
+    .icard-title { font-weight: 700; font-size: 14px; }
+    .icard-desc  { font-size: 13px; color: var(--muted); line-height: 1.45; }
+
+    @media (max-width: 800px) {
+      .para-grid, .comp-grid { grid-template-columns: 1fr; }
+      .gen5 { grid-template-columns: repeat(3, 1fr); }
+      .insight-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<main>
+
+  <div class="page-hd">
+    <h1>AlphaDev 直觀解說</h1>
+    <p class="page-sub">用迷宮探索解釋：AlphaDev 為什麼既屬於 RL，又和一般 RL 根本不同。</p>
+    <p class="back-link">← <a href="index.html">回到 MazeDev 互動 Demo</a></p>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       Section 1: 訓練出的「東西」不一樣
+       ══════════════════════════════════════ -->
+  <div class="sec">
+    <h2>1．訓練出的「東西」不一樣</h2>
+    <p class="sec-sub">
+      一般 RL 訓練出的是一個<strong>每步都要執行的神經網路</strong>；
+      AlphaDev 訓練出的是一段<strong>可以獨立存在的程式碼</strong>，部署後不再需要 AI。
+    </p>
+
+    <div class="para-grid">
+      <!-- RL card -->
+      <div class="pcard rl">
+        <div class="pcard-title">
+          <span class="pdot" style="background:var(--control)"></span>一般 RL（DQN、PPO…）
+        </div>
+        <div class="phases">
+          <div class="phase">
+            <div class="ph-lbl">訓練</div>
+            <div class="ph-name">走迷宮 → 更新網路</div>
+            <div class="ph-desc">收集 experience，梯度下降</div>
+          </div>
+          <div class="ph-arr">→</div>
+          <div class="phase">
+            <div class="ph-lbl">產出</div>
+            <div class="ph-name">神經網路</div>
+            <div class="ph-desc">MB～GB 的模型權重</div>
+          </div>
+          <div class="ph-arr">→</div>
+          <div class="phase hi">
+            <div class="ph-lbl">部署</div>
+            <div class="ph-name">每步呼叫模型</div>
+            <div class="ph-desc">網路在推論時永遠在線</div>
+          </div>
+        </div>
+        <div class="inf-box">
+          <div class="inf-row">
+            <div class="chip pos" id="rl-pos">位置[1,1]</div>
+            <div class="inf-arr">→</div>
+            <div class="chip model" id="rl-net">🧠 神經網路</div>
+            <div class="inf-arr">→</div>
+            <div class="chip act" id="rl-act">向右走</div>
+            <div class="inf-arr">→</div>
+            <div class="chip pos" id="rl-pos2">位置[1,2]</div>
+            <div class="inf-arr" style="opacity:.45">↺</div>
+          </div>
+          <div class="inf-lbl" id="rl-lbl">每到一個格子，神經網路就要算一次…</div>
+        </div>
+      </div>
+
+      <!-- AlphaDev card -->
+      <div class="pcard adv">
+        <div class="pcard-title">
+          <span class="pdot" style="background:var(--program)"></span>AlphaDev（演算法發現器）
+        </div>
+        <div class="phases">
+          <div class="phase">
+            <div class="ph-lbl">搜尋</div>
+            <div class="ph-name">嘗試規則組合</div>
+            <div class="ph-desc">MCTS 在程式空間探索</div>
+          </div>
+          <div class="ph-arr">→</div>
+          <div class="phase">
+            <div class="ph-lbl">產出</div>
+            <div class="ph-name">規則程式</div>
+            <div class="ph-desc">幾條規則，幾百 bytes</div>
+          </div>
+          <div class="ph-arr">→</div>
+          <div class="phase hi good">
+            <div class="ph-lbl">部署</div>
+            <div class="ph-name">直接跑規則</div>
+            <div class="ph-desc">不需要任何模型 ✓</div>
+          </div>
+        </div>
+        <div class="inf-box">
+          <div class="inf-row">
+            <div class="chip pos">位置[1,1]</div>
+            <div class="inf-arr">→</div>
+            <div class="chip rule">LEFT_OPEN → 向右走</div>
+            <div class="inf-arr">→</div>
+            <div class="chip res">位置[1,2]</div>
+          </div>
+          <div class="inf-lbl">固定規則，不需要模型，不需要 GPU ✓</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="key-box">
+      <strong style="color:#92400e">關鍵差異：</strong>
+      RL 在推論時模型一直在「思考」；AlphaDev 在推論時只是在「照規則走」。
+      真實 AlphaDev 發現的排序程式只有幾十條 x86 組語指令，
+      已直接整合進 LLVM——<strong style="color:#92400e">AI 功成身退，程式碼永遠留下。</strong>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       Section 2: 迷宮並排動畫
+       ══════════════════════════════════════ -->
+  <div class="sec sec-sep">
+    <h2>2．直接在迷宮裡看：每走一步，誰需要「動腦」？</h2>
+    <p class="sec-sub">
+      同一張迷宮，左邊用「RL Policy 模式」（每步呼叫模型），右邊用「AlphaDev 程式模式」（照規則走）。
+      盯著<strong>模型呼叫次數</strong>的差異——這就是部署成本的根本差距。
+    </p>
+
+    <div class="ctrl-row" style="margin-bottom:16px">
+      <button class="btn primary" id="playBtn">▶ 播放</button>
+      <button class="btn ghost"   id="resetBtn2">重置</button>
+    </div>
+
+    <div class="comp-grid">
+      <!-- RL side -->
+      <div class="comp-card">
+        <div class="comp-head">
+          <div class="comp-title">RL Policy 模式</div>
+          <span class="mbadge needs">推論時需要模型</span>
+        </div>
+        <div class="maze-wrap">
+          <div class="over-badge thinking" id="thinkBadge">🧠 模型計算中…</div>
+          <div class="maze" id="rlMaze"></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-box">
+            <div class="stat-num" id="rlCalls">0</div>
+            <div class="stat-lbl">🧠 模型呼叫次數</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" id="rlSteps">0</div>
+            <div class="stat-lbl">步數</div>
+            <div style="font-size:10px;color:#ef4444;margin-top:2px;text-align:center">針對此迷宮訓練 1,200 次後</div>
+          </div>
+        </div>
+        <div class="logbox" id="rlLog">按播放開始…</div>
+      </div>
+
+      <!-- AlphaDev side -->
+      <div class="comp-card adv">
+        <div class="comp-head">
+          <div class="comp-title">AlphaDev 程式模式</div>
+          <span class="mbadge free">不需要任何模型</span>
+        </div>
+        <div class="maze-wrap">
+          <div class="over-badge firing" id="ruleBadge">LEFT_OPEN ✓</div>
+          <div class="maze" id="advMaze"></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-box">
+            <div class="stat-num" id="advCalls" style="color:var(--program)">0</div>
+            <div class="stat-lbl">🧠 模型呼叫次數</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" id="advSteps">0</div>
+            <div class="stat-lbl">步數</div>
+            <div style="font-size:10px;color:var(--program);margin-top:2px;text-align:center">通用規則，未針對此迷宮優化</div>
+          </div>
+        </div>
+        <div class="logbox" id="advLog">按播放開始…</div>
+      </div>
+    </div>
+
+    <div class="note-box">
+      <strong style="color:var(--ink)">為什麼 AlphaDev 步數比 RL 多？</strong>
+      RL（Q-learning）針對<strong>這一張迷宮訓練了 1,200 次</strong>，學到的幾乎是最短路徑（8 步）；
+      AlphaDev 的 LEFT_OPEN 是一個<strong>通用規則</strong>，從未針對任何迷宮優化，走的是左手定則（17 步）。
+      步數多寡不是重點——<strong>重點是：把 RL 的 policy 換到另一張迷宮，就完全失效了。</strong>
+    </div>
+
+    <!-- 換張迷宮挑戰 -->
+    <div style="margin-top:16px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px">
+      <div style="font-weight:700;font-size:16px;margin-bottom:6px">「換張迷宮」挑戰</div>
+      <p style="font-size:14px;color:var(--muted);margin:0 0 14px;line-height:1.55">
+        RL 用 1,200 次訓練換來的「最短路徑」只對迷宮 1 有效。換到迷宮 2——AlphaDev 的程式不需要任何更改，直接可用；RL 則要從頭重新訓練。
+      </p>
+      <button class="btn primary" id="switchBtn">試試看：換到迷宮 2</button>
+      <div id="switchGrid" class="comp-grid" style="margin-top:16px;display:none">
+        <!-- RL side: can't solve maze 2 -->
+        <div class="comp-card" style="border-color:#fca5a5">
+          <div class="comp-head">
+            <div class="comp-title">RL Policy（迷宮 1 訓練的）</div>
+            <span class="mbadge needs">換了地圖</span>
+          </div>
+          <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:22px 16px;text-align:center;display:grid;gap:6px">
+            <div style="font-size:36px">❌</div>
+            <div style="font-weight:700;color:#991b1b;font-size:15px">原 Policy 無法使用</div>
+            <div style="font-size:13px;color:#b91c1c;line-height:1.5">
+              Q-table 記錄的是迷宮 1 每個座標的「最佳移動方向」<br>
+              迷宮 2 的牆壁布局完全不同，這些值毫無意義
+            </div>
+            <div style="margin-top:8px;padding:8px 12px;background:#fee2e2;border-radius:6px;font-size:13px;font-weight:700;color:#991b1b">
+              需要重新跑 1,200+ 訓練回合才能使用
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--muted);text-align:center;padding-top:2px">這就是「步數少」的代價：高度特化，換張圖就廢了</div>
+        </div>
+        <!-- AlphaDev side: solves maze 2 instantly -->
+        <div class="comp-card adv">
+          <div class="comp-head">
+            <div class="comp-title">AlphaDev 程式（不需修改）</div>
+            <span class="mbadge free">直接可用</span>
+          </div>
+          <div class="maze-wrap">
+            <div class="maze" id="switchMaze"></div>
+          </div>
+          <div class="logbox" id="switchLog">按下按鈕後執行…</div>
+          <div style="font-size:12px;color:var(--muted);text-align:center;padding-top:2px">步數多一點，但通用——任何迷宮都能解</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       Section 3: 泛化 — 5 張迷宮
+       ══════════════════════════════════════ -->
+  <div class="sec sec-sep">
+    <h2>3．同一個程式，解 5 張迷宮（含從未見過的）</h2>
+    <p class="sec-sub">
+      AlphaDev 只在左邊 3 張迷宮上搜尋，卻發現了能直接解右邊 2 張<strong>從未見過</strong>的迷宮的程式。
+      這說明它找到的是<strong>通用邏輯</strong>，不是記憶解法。
+    </p>
+
+    <div class="gen-tags">
+      <span class="gtag train">訓練迷宮（已見過）×3</span>
+      <span class="gtag test">測試迷宮（從未見過）×2</span>
+    </div>
+
+    <div class="gen5" id="gen5"></div>
+
+    <div class="ctrl-row" style="margin-top:14px">
+      <button class="btn primary" id="genRunBtn">▶ 跑泛化測試</button>
+      <button class="btn ghost"   id="genResetBtn">重置</button>
+    </div>
+
+    <div class="note-box" style="margin-top:14px">
+      <strong style="color:var(--ink)">類比真實 AlphaDev：</strong>
+      論文中，AlphaDev 的排序程式是在特定輸入分布上搜尋，但最終驗證在所有可能的輸入組合上都正確排序。
+      它不是「記住了怎麼排某些數字」，而是發現了一個通用的排序演算法。
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       Section 4: 為什麼需要 RL？
+       ══════════════════════════════════════ -->
+  <div class="sec sec-sep">
+    <h2>4．AlphaDev 為什麼需要 RL？</h2>
+    <p class="sec-sub">AlphaDev 用 RL，但目標和一般 RL 完全不同——它在「程式空間」搜尋演算法，不是在「遊戲空間」學習怎麼玩。</p>
+
+    <div class="insight-row">
+      <div class="icard">
+        <div class="icard-icon">🌲</div>
+        <div class="icard-title">MCTS 搜尋程式空間</div>
+        <div class="icard-desc">
+          組語程式空間超過 10<sup>14</sup> 種可能。RL 的 MCTS 在每個節點選擇「下一條指令」，
+          就像在迷宮探索中選擇「下一條規則」——差別只在規模：組語空間遠超迷宮。
+        </div>
+      </div>
+      <div class="icard">
+        <div class="icard-icon">🎯</div>
+        <div class="icard-title">Reward = 正確性 + 速度</div>
+        <div class="icard-desc">
+          和迷宮 demo 一樣同時考慮「解了幾張迷宮」和「程式長度」，AlphaDev 的 reward
+          同時考慮「排序結果是否正確」和「指令數夠不夠少」，缺一不可。
+        </div>
+      </div>
+      <div class="icard">
+        <div class="icard-icon">📦</div>
+        <div class="icard-title">AI 發明程式，然後退場</div>
+        <div class="icard-desc">
+          一般 RL 的神經網路永遠是「玩家」；AlphaDev 的神經網路是「發明家」。
+          它把演算法發明出來後就退場，留下的幾十條組語指令已整合進 LLVM，
+          影響全球所有 C++ 程式。
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+/* ═══════════════════════════════════════════════
+   Shared: maze data + helper functions
+   ═══════════════════════════════════════════════ */
+const MAZES = [
+  ["#######","#S....#","#.###.#","#...#.#","###.#.#","#....G#","#######"],
+  ["#######","#S#...#","#.#.#G#","#...#.#","###.#.#","#.....#","#######"],
+  ["#######","#S....#","###.#.#","#...#.#","#.###.#","#....G#","#######"],
+];
+const TEST_MAZES = [
+  ["#######","#S....#","#####.#","#.....#","#.###.#","#....G#","#######"],
+  ["#######","#.....#","#S###.#","#.....#","###.#.#","#....G#","#######"],
+];
+
+const DIRS = [[-1,0],[0,1],[1,0],[0,-1]];
+
+function findTile(maze, t) {
+  for (let r=0; r<maze.length; r++)
+    for (let c=0; c<maze[r].length; c++)
+      if (maze[r][c]===t) return [r,c];
+  return null;
+}
+function isOpen(maze, [r,c]) { return maze[r] && maze[r][c] && maze[r][c]!=='#'; }
+function same([r1,c1],[r2,c2]) { return r1===r2 && c1===c2; }
+function addP([r1,c1],[r2,c2]) { return [r1+r2,c1+c2]; }
+function rot(d,a) { return (d+a+4)%4; }
+
+function runProgram(rules, maze) {
+  const start = findTile(maze,'S');
+  const goal  = findTile(maze,'G');
+  let pos = start, dir = 1;
+  const path = [pos];
+  const ruleFired = [];
+  for (let s=0; s<80; s++) {
+    let moved = false;
+    for (const rule of rules) {
+      const fd = DIRS[dir];
+      const front = addP(pos, fd);
+      if (rule==='LEFT_OPEN') {
+        const ld = rot(dir,-1);
+        const lp = addP(pos, DIRS[ld]);
+        if (isOpen(maze, lp)) { pos=lp; dir=ld; moved=true; ruleFired.push('LEFT_OPEN'); break; }
+      } else if (rule==='FRONT_OPEN' && isOpen(maze, front)) {
+        pos=front; moved=true; ruleFired.push('FRONT_OPEN'); break;
+      } else if (rule==='GOAL_AHEAD' && same(front, goal)) {
+        pos=front; moved=true; ruleFired.push('GOAL_AHEAD'); break;
+      }
+    }
+    if (!moved) { dir=rot(dir,1); ruleFired.push('TURN'); }
+    path.push(pos);
+    if (same(pos, goal)) return { solved:true, path, ruleFired };
+  }
+  return { solved:false, path, ruleFired };
+}
+
+function renderMaze(el, maze, visited, current, prog=false) {
+  const vc = prog ? 'pvisited' : 'visited';
+  const ac = prog ? 'pagent'   : 'agent';
+  const vis = new Set(visited.map(p => p.join(',')));
+  let html = '';
+  for (let r=0; r<maze.length; r++) {
+    for (let c=0; c<maze[r].length; c++) {
+      const ch = maze[r][c];
+      let cls = 'tile';
+      if (ch==='#') cls += ' wall';
+      else if (ch==='S') cls += ' start';
+      else if (ch==='G') cls += ' goal';
+      else if (vis.has([r,c].join(','))) cls += ' ' + vc;
+      if (current && same(current,[r,c])) cls += ' ' + ac;
+      html += `<span class="${cls}">${ch==='#'?'':ch}</span>`;
+    }
+  }
+  el.innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════════
+   Section 1: RL loop pulse
+   ═══════════════════════════════════════════════ */
+const rlPulseIds  = ['rl-pos','rl-net','rl-act','rl-pos2'];
+const rlPulseLbls = ['讀取目前位置…','神經網路計算中…','輸出動作…','更新到新位置…'];
+let rlPulse = 0;
+setInterval(() => {
+  rlPulseIds.forEach((id,i) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.transform = i===rlPulse ? 'scale(1.1)'      : 'scale(1)';
+    el.style.boxShadow = i===rlPulse ? '0 0 0 2px var(--control)' : 'none';
+  });
+  const lbl = document.getElementById('rl-lbl');
+  if (lbl) lbl.textContent = rlPulseLbls[rlPulse];
+  rlPulse = (rlPulse+1) % rlPulseIds.length;
+}, 650);
+
+/* ═══════════════════════════════════════════════
+   Section 2: Side-by-side maze animation
+   ═══════════════════════════════════════════════ */
+
+// RL path: hardcoded Q-learning result on MAZES[0]
+const RL_PATH  = [[1,1],[1,2],[1,3],[1,4],[1,5],[2,5],[3,5],[4,5],[5,5]];
+const RL_MOVES = ['向右走','向右走','向右走','向右走','向下走','向下走','向下走','向下走'];
+
+// AlphaDev path: computed from LEFT_OPEN on MAZES[0]
+const advRes   = runProgram(['LEFT_OPEN'], MAZES[0]);
+const ADV_PATH = advRes.path;
+const ADV_RULE = advRes.ruleFired;
+
+const MAZE0      = MAZES[0];
+const GOAL_CELL  = findTile(MAZE0,'G');
+const TOTAL_STEPS = Math.max(RL_PATH.length, ADV_PATH.length) - 1;
+
+let compStep = 0, compTimer = null;
+
+function compInit() {
+  compStep = 0;
+  renderMaze(document.getElementById('rlMaze'),  MAZE0, [RL_PATH[0]],  RL_PATH[0],  false);
+  renderMaze(document.getElementById('advMaze'), MAZE0, [ADV_PATH[0]], ADV_PATH[0], true);
+  ['rlCalls','advCalls','rlSteps','advSteps'].forEach(id =>
+    document.getElementById(id).textContent = '0'
+  );
+  document.getElementById('rlLog').textContent  = '按播放開始…';
+  document.getElementById('advLog').textContent = '按播放開始…';
+  document.getElementById('thinkBadge').classList.remove('show');
+  document.getElementById('ruleBadge').classList.remove('show');
+}
+
+function popNum(id) {
+  const el = document.getElementById(id);
+  el.classList.remove('num-pop');
+  void el.offsetWidth; // reflow
+  el.classList.add('num-pop');
+}
+
+function compAdvance() {
+  if (compStep >= TOTAL_STEPS) {
+    clearInterval(compTimer); compTimer = null;
+    document.getElementById('playBtn').textContent = '▶ 播放';
+    document.getElementById('thinkBadge').classList.remove('show');
+    document.getElementById('ruleBadge').classList.remove('show');
+    const rlAt  = RL_PATH[RL_PATH.length-1];
+    const advAt = ADV_PATH[ADV_PATH.length-1];
+    document.getElementById('rlLog').innerHTML  =
+      same(rlAt, GOAL_CELL)  ? `✅ 抵達終點！共呼叫模型 <strong>${RL_PATH.length-1}</strong> 次` : '未到達終點';
+    document.getElementById('advLog').innerHTML =
+      same(advAt, GOAL_CELL) ? `✅ 抵達終點！模型呼叫次數：<strong style="color:var(--program)">0</strong>` : '未到達終點';
+    return;
+  }
+
+  // Show "thinking" / "rule fired" badges
+  const thinkEl = document.getElementById('thinkBadge');
+  const ruleEl  = document.getElementById('ruleBadge');
+  const ruleLabel = ADV_RULE[compStep] === 'TURN' ? '無規則觸發 → 右轉' : (ADV_RULE[compStep] || 'LEFT_OPEN') + ' ✓';
+  ruleEl.textContent = ruleLabel;
+  thinkEl.classList.add('show');
+  ruleEl.classList.add('show');
+
+  setTimeout(() => {
+    compStep++;
+    thinkEl.classList.remove('show');
+    ruleEl.classList.remove('show');
+
+    // RL side
+    const ri    = Math.min(compStep, RL_PATH.length-1);
+    const rlAt  = RL_PATH[ri];
+    renderMaze(document.getElementById('rlMaze'), MAZE0, RL_PATH.slice(0,ri+1), rlAt, false);
+    const rlCalls = Math.min(compStep, RL_PATH.length-1);
+    document.getElementById('rlCalls').textContent = rlCalls;
+    document.getElementById('rlSteps').textContent = ri;
+    popNum('rlCalls');
+    const prev = RL_PATH[ri-1];
+    const move = RL_MOVES[ri-1] || (same(rlAt,GOAL_CELL) ? '已到終點' : '');
+    document.getElementById('rlLog').textContent =
+      ri > 0 ? `推論 #${rlCalls}：[${prev}] → 🧠 → ${move} → [${rlAt}]` : '';
+
+    // AlphaDev side
+    const ai   = Math.min(compStep, ADV_PATH.length-1);
+    const advAt = ADV_PATH[ai];
+    renderMaze(document.getElementById('advMaze'), MAZE0, ADV_PATH.slice(0,ai+1), advAt, true);
+    document.getElementById('advCalls').textContent = '0';
+    document.getElementById('advSteps').textContent = ai;
+    const fired = ADV_RULE[ai-1] || '';
+    document.getElementById('advLog').textContent =
+      ai > 0 && fired !== 'TURN'
+        ? `步驟 ${ai}：規則 ${fired} 觸發 → 移動到 [${advAt}]`
+        : ai > 0 ? `步驟 ${ai}：無規則觸發 → 右轉` : '';
+  }, 280);
+}
+
+document.getElementById('playBtn').addEventListener('click', () => {
+  if (compTimer) {
+    clearInterval(compTimer); compTimer = null;
+    document.getElementById('playBtn').textContent = '▶ 播放';
+    document.getElementById('thinkBadge').classList.remove('show');
+    document.getElementById('ruleBadge').classList.remove('show');
+    return;
+  }
+  compInit();
+  document.getElementById('playBtn').textContent = '⏸ 暫停';
+  compTimer = setInterval(compAdvance, 750);
+});
+document.getElementById('resetBtn2').addEventListener('click', () => {
+  if (compTimer) { clearInterval(compTimer); compTimer = null; }
+  document.getElementById('playBtn').textContent = '▶ 播放';
+  compInit();
+});
+compInit();
+
+/* ═══════════════════════════════════════════════
+   Section 3: Generalization demo
+   ═══════════════════════════════════════════════ */
+const GEN_PROG = ['LEFT_OPEN'];
+let genDone = false;
+
+function gen5Init() {
+  genDone = false;
+  const container = document.getElementById('gen5');
+  container.innerHTML = '';
+  const defs = [
+    ...MAZES.map((m,i)      => ({ maze:m, label:`訓練 ${i+1}`, type:'train' })),
+    ...TEST_MAZES.map((m,i) => ({ maze:m, label:`測試 ${i+1}`, type:'test'  })),
+  ];
+  defs.forEach(({ maze, label, type }) => {
+    const card = document.createElement('div');
+    card.className = 'g5card' + (type==='test' ? ' test' : '');
+    card.innerHTML = `
+      <div class="g5title">${label}</div>
+      <span class="g5badge ${type}">${type==='test' ? '從未見過' : '訓練集'}</span>
+      <div class="g5maze"></div>
+      <div class="g5status">待執行…</div>
+    `;
+    container.appendChild(card);
+    const mazeEl = card.querySelector('.g5maze');
+    const start  = findTile(maze,'S');
+    renderMaze(mazeEl, maze, [start], start, type==='test');
+    if (type==='test') { mazeEl.style.opacity='0.3'; mazeEl.style.transition='opacity 400ms'; }
+  });
+}
+
+function gen5Run() {
+  if (genDone) return;
+  genDone = true;
+  const cards = document.getElementById('gen5').querySelectorAll('.g5card');
+  const defs  = [
+    ...MAZES.map(m      => ({ maze:m, type:'train' })),
+    ...TEST_MAZES.map(m => ({ maze:m, type:'test'  })),
+  ];
+  defs.forEach(({ maze, type }, i) => {
+    const delay = type==='test' ? (i - MAZES.length) * 700 + 200 : 0;
+    setTimeout(() => {
+      const card    = cards[i];
+      const mazeEl  = card.querySelector('.g5maze');
+      const statEl  = card.querySelector('.g5status');
+      const res     = runProgram(GEN_PROG, maze);
+      mazeEl.style.opacity = '1';
+      renderMaze(mazeEl, maze, res.path, res.path[res.path.length-1], true);
+      if (res.solved) {
+        statEl.textContent   = `✓ 解決！${res.path.length-1} 步`;
+        statEl.style.color   = 'var(--good)';
+        statEl.style.fontWeight = '700';
+      } else {
+        statEl.textContent = '✗ 失敗';
+        statEl.style.color = 'var(--bad)';
+      }
+    }, delay);
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   Section 2 bonus: "換張迷宮" challenge
+   ═══════════════════════════════════════════════ */
+document.getElementById('switchBtn').addEventListener('click', () => {
+  const btn = document.getElementById('switchBtn');
+  btn.textContent = '已執行';
+  btn.disabled = true;
+
+  document.getElementById('switchGrid').style.display = 'grid';
+
+  const maze2  = MAZES[1];
+  const res    = runProgram(['LEFT_OPEN'], maze2);
+  const mazeEl = document.getElementById('switchMaze');
+  const logEl  = document.getElementById('switchLog');
+
+  // Init maze display
+  renderMaze(mazeEl, maze2, [res.path[0]], res.path[0], true);
+  logEl.textContent = '執行 LEFT_OPEN 規則…';
+
+  let i = 0;
+  const t = setInterval(() => {
+    if (i >= res.path.length - 1) {
+      clearInterval(t);
+      logEl.innerHTML = `✅ 解決！${res.path.length - 1} 步。<strong>相同程式，零修改。</strong>`;
+      return;
+    }
+    i++;
+    renderMaze(mazeEl, maze2, res.path.slice(0, i + 1), res.path[i], true);
+    const fired = res.ruleFired[i - 1] || '';
+    logEl.textContent = fired !== 'TURN'
+      ? `步驟 ${i}：${fired} 觸發 → 移動`
+      : `步驟 ${i}：無規則觸發 → 右轉`;
+  }, 160);
+});
+
+document.getElementById('genRunBtn').addEventListener('click', gen5Run);
+document.getElementById('genResetBtn').addEventListener('click', () => gen5Init());
+gen5Init();
+</script>
+</body>
+</html>
