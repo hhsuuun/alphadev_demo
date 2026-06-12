@@ -204,8 +204,57 @@
     .icard-title { font-weight: 700; font-size: 14px; }
     .icard-desc  { font-size: 13px; color: var(--muted); line-height: 1.45; }
 
+    /* ── Closing: unseen maze proof ── */
+    .final-demo {
+      border-top: 2px solid var(--line);
+      padding-top: 28px;
+      margin-bottom: 10px;
+      display: grid;
+      justify-items: center;
+      gap: 16px;
+    }
+    .btn.small { padding: 6px 12px; font-size: 13px; }
+    .final-stage {
+      width: 100%;
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: center;
+    }
+    .final-stage.show { display: grid; }
+    .silent-maze {
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+      min-height: 274px;
+      align-content: center;
+    }
+    .final-title {
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
+    }
+    .final-title.rl { color: var(--control); }
+    .final-title.adv { color: var(--program); }
+    .final-copy {
+      max-width: 380px;
+      min-height: 42px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      text-align: center;
+    }
+    .final-status {
+      min-height: 20px;
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 700;
+      text-align: center;
+    }
+    .final-status.rl { color: var(--bad); }
+    .final-status.adv { color: var(--program); }
     @media (max-width: 800px) {
-      .para-grid, .comp-grid { grid-template-columns: 1fr; }
+      .para-grid, .comp-grid, .final-stage { grid-template-columns: 1fr; }
       .gen5 { grid-template-columns: repeat(3, 1fr); }
       .insight-row { grid-template-columns: 1fr; }
     }
@@ -388,6 +437,25 @@
       <strong>步數並非比較指標——關鍵在於 generalization：RL policy 高度依賴訓練環境，換一張迷宮即失效。</strong>
     </div>
 
+  </div>
+
+
+  <div class="sec final-demo">
+    <button class="btn ghost small" id="finalPlayBtn">新迷宮測試</button>
+    <div class="final-stage" id="finalStage">
+      <div class="silent-maze">
+        <div class="final-title rl">RL Policy：換新迷宮後仍持續推論</div>
+        <div class="final-copy">它不會撞一次就停；每一步還是會呼叫模型、嘗試動作，但舊迷宮學到的 policy 可能反覆撞牆、修正、再卡住。</div>
+        <div class="maze" id="finalRlMaze"></div>
+        <div class="final-status rl" id="finalRlStatus"></div>
+      </div>
+      <div class="silent-maze">
+        <div class="final-title adv">AlphaDev 程式：同一段規則直接執行</div>
+        <div class="final-copy">沒有重新訓練，也沒有模型在線推論；只是把已發現的程式原封不動放到新迷宮上跑。</div>
+        <div class="maze" id="finalAdvMaze"></div>
+        <div class="final-status adv" id="finalAdvStatus"></div>
+      </div>
+    </div>
   </div>
 
 
@@ -647,6 +715,87 @@ compInit();
     renderMaze(mazeEl, maze, path, pos, false);
   });
 })();
+
+/* ═══════════════════════════════════════════════
+   Closing: same program on an unseen maze
+   ═══════════════════════════════════════════════ */
+const FINAL_MAZE = ["#######","#S#...#","#.#.#G#","#.#.#.#","#...#.#","#####.#","#######"];
+const FINAL_RL_SCRIPT = [
+  { pos:[1,1], hit:[1,2], text:'推論 #1：向右，撞牆' },
+  { pos:[2,1], text:'推論 #2：改向下，暫時前進' },
+  { pos:[2,1], hit:[2,2], text:'推論 #3：再向右，撞牆' },
+  { pos:[3,1], text:'推論 #4：改向下，繼續試' },
+  { pos:[3,1], hit:[3,2], text:'推論 #5：向右，仍是牆' },
+  { pos:[4,1], text:'推論 #6：向下，走到岔路' },
+  { pos:[4,2], text:'推論 #7：向右，像是有路' },
+  { pos:[4,3], text:'推論 #8：繼續向右' },
+  { pos:[4,3], hit:[4,4], text:'推論 #9：撞牆後卡在局部路徑' },
+  { pos:[4,3], hit:[4,4], text:'推論 #10：仍在試錯，沒有解到終點' }
+];
+const FINAL_ADV_RES = runProgram(['LEFT_OPEN'], FINAL_MAZE);
+let finalTimer = null;
+
+function finalInit() {
+  renderMaze(document.getElementById('finalRlMaze'), FINAL_MAZE, [FINAL_RL_SCRIPT[0].pos], FINAL_RL_SCRIPT[0].pos, false);
+  renderMaze(document.getElementById('finalAdvMaze'), FINAL_MAZE, [FINAL_ADV_RES.path[0]], FINAL_ADV_RES.path[0], true);
+  document.getElementById('finalStage').classList.remove('show');
+  document.getElementById('finalRlStatus').textContent = '';
+  document.getElementById('finalAdvStatus').textContent = '';
+}
+
+function flashFinalWall(cell) {
+  const rlMaze = document.getElementById('finalRlMaze');
+  const wall = rlMaze.children[cell[0] * 7 + cell[1]];
+  if (!wall) return;
+  wall.classList.remove('wall-flash');
+  void wall.offsetWidth;
+  wall.classList.add('wall-flash');
+}
+
+function playFinalDemo() {
+  if (finalTimer) clearInterval(finalTimer);
+  const btn = document.getElementById('finalPlayBtn');
+  const stage = document.getElementById('finalStage');
+  const rlMaze = document.getElementById('finalRlMaze');
+  const advMaze = document.getElementById('finalAdvMaze');
+  const rlStatus = document.getElementById('finalRlStatus');
+  const advStatus = document.getElementById('finalAdvStatus');
+  let step = 0;
+  const rlVisited = [FINAL_RL_SCRIPT[0].pos];
+
+  stage.classList.add('show');
+  btn.textContent = '重新播放';
+  renderMaze(rlMaze, FINAL_MAZE, rlVisited, FINAL_RL_SCRIPT[0].pos, false);
+  renderMaze(advMaze, FINAL_MAZE, [FINAL_ADV_RES.path[0]], FINAL_ADV_RES.path[0], true);
+  rlStatus.textContent = '準備在未見迷宮上推論...';
+  advStatus.textContent = '載入同一段程式：LEFT_OPEN';
+
+  finalTimer = setInterval(() => {
+    step++;
+    const ri = Math.min(step - 1, FINAL_RL_SCRIPT.length - 1);
+    const rlFrame = FINAL_RL_SCRIPT[ri];
+    if (!rlVisited.some(p => same(p, rlFrame.pos))) rlVisited.push(rlFrame.pos);
+    renderMaze(rlMaze, FINAL_MAZE, rlVisited, rlFrame.pos, false);
+    rlStatus.textContent = rlFrame.text;
+    if (rlFrame.hit) setTimeout(() => flashFinalWall(rlFrame.hit), 120);
+
+    const ai = Math.min(step, FINAL_ADV_RES.path.length - 1);
+    renderMaze(advMaze, FINAL_MAZE, FINAL_ADV_RES.path.slice(0, ai + 1), FINAL_ADV_RES.path[ai], true);
+    const fired = FINAL_ADV_RES.ruleFired[ai - 1] || '';
+    advStatus.textContent =
+      fired === 'TURN'
+        ? `程式步驟 ${ai}：左邊不通，原地右轉`
+        : `程式步驟 ${ai}：${fired} → 移動到 [${FINAL_ADV_RES.path[ai]}]`;
+    if (step >= FINAL_ADV_RES.path.length - 1) {
+      clearInterval(finalTimer);
+      finalTimer = null;
+      advStatus.textContent = `抵達終點；整段過程沒有重新訓練、沒有呼叫模型`;
+    }
+  }, 1200);
+}
+
+document.getElementById('finalPlayBtn').addEventListener('click', playFinalDemo);
+finalInit();
 </script>
 </body>
 </html>
